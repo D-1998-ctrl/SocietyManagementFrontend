@@ -1,0 +1,92 @@
+[
+    {
+        "srNo": 1,
+        "MeetingType": "Board Meeting",
+        "DateFrom": "2025-01-01",
+        "DateTo": "2025-01-01",
+        "Place": "Conference Room A",
+        "Description": "Annual board meeting to discuss strategic planning.",
+        "Comments": "All members to attend."
+    },
+    {
+        "srNo": 2,
+        "MeetingType": "Annual General Meeting",
+        "DateFrom": "2025-02-15",
+        "DateTo": "2025-02-15",
+        "Place": "Community Hall",
+        "Description": "Review of annual performance and budget approval.",
+        "Comments": "Open to all society members."
+    },
+    {
+        "srNo": 3,
+        "MeetingType": "Special Meeting",
+        "DateFrom": "2025-03-10",
+        "DateTo": "2025-03-10",
+        "Place": "Online (Zoom)",
+        "Description": "Discussion on new housing society rules.",
+        "Comments": "Zoom link to be shared via email."
+    },
+    {
+        "srNo": 4,
+        "MeetingType": "Emergency Meeting",
+        "DateFrom": "2025-04-05",
+        "DateTo": "2025-04-05",
+        "Place": "Office Cabin",
+        "Description": "Urgent meeting to address maintenance issues.",
+        "Comments": "Board members only."
+    },
+    {
+        "srNo": 5,
+        "MeetingType": "Committee Meeting",
+        "DateFrom": "2025-05-20",
+        "DateTo": "2025-05-20",
+        "Place": "Recreation Room",
+        "Description": "Discussion on society events and celebrations.",
+        "Comments": "Event committee to attend."
+    },
+    {
+        "srNo": 6,
+        "MeetingType": "Quarterly Meeting",
+        "DateFrom": "2025-06-15",
+        "DateTo": "2025-06-15",
+        "Place": "Conference Room B",
+        "Description": "Quarterly financial review and updates.",
+        "Comments": "Open to finance committee members."
+    },
+    {
+        "srNo": 7,
+        "MeetingType": "Sub-Committee Meeting",
+        "DateFrom": "2025-07-10",
+        "DateTo": "2025-07-10",
+        "Place": "Community Hall",
+        "Description": "Preparation for the upcoming annual festival.",
+        "Comments": "Volunteers invited."
+    },
+    {
+        "srNo": 8,
+        "MeetingType": "Board Meeting",
+        "DateFrom": "2025-08-05",
+        "DateTo": "2025-08-05",
+        "Place": "Office Cabin",
+        "Description": "Mid-year strategy and performance review.",
+        "Comments": "Mandatory for board members."
+    },
+    {
+        "srNo": 9,
+        "MeetingType": "Review Meeting",
+        "DateFrom": "2025-09-15",
+        "DateTo": "2025-09-15",
+        "Place": "Recreation Room",
+        "Description": "Discussion on maintenance contracts and tenders.",
+        "Comments": "Maintenance team to present proposals."
+    },
+    {
+        "srNo": 10,
+        "MeetingType": "General Meeting",
+        "DateFrom": "2025-10-01",
+        "DateTo": "2025-10-01",
+        "Place": "Community Hall",
+        "Description": "Open forum for society members to raise concerns.",
+        "Comments": "All residents encouraged to attend."
+    }
+]

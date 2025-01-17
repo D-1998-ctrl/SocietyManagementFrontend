@@ -1,0 +1,96 @@
+[
+    {
+      "srNo": 1,
+      "Group": "John",
+      "subGroup": "Doe",
+      "AccountName": "Smith",
+      "yearOpening": "1990-01-01",
+      "TypeCode": "45555",
+      "DebitcreditCard": "50000"
+    },
+    {
+      "srNo": 2,
+      "Group": "Emily",
+      "subGroup": "Clark",
+      "AccountName": "Brown",
+      "yearOpening": "1995-03-15",
+      "TypeCode": "56789",
+      "DebitcreditCard": "60000"
+    },
+    {
+      "srNo": 3,
+      "Group": "Michael",
+      "subGroup": "Johnson",
+      "AccountName": "Davis",
+      "yearOpening": "1988-07-22",
+      "TypeCode": "67890",
+      "DebitcreditCard": "45000"
+    },
+    {
+      "srNo": 4,
+      "Group": "Sarah",
+      "subGroup": "Williams",
+      "AccountName": "Miller",
+      "yearOpening": "2001-11-12",
+      "TypeCode": "12345",
+      "DebitcreditCard": "70000"
+    },
+    {
+      "srNo": 5,
+      "Group": "David",
+      "subGroup": "Martinez",
+      "AccountName": "Garcia",
+      "yearOpening": "2010-04-01",
+      "TypeCode": "34567",
+      "DebitcreditCard": "52000"
+    },
+    {
+      "srNo": 6,
+      "Group": "Sophia",
+      "subGroup": "Rodriguez",
+      "AccountName": "Hernandez",
+      "yearOpening": "2005-09-30",
+      "TypeCode": "45678",
+      "DebitcreditCard": "65000"
+    },
+    {
+      "srNo": 7,
+      "Group": "James",
+      "subGroup": "Lopez",
+      "AccountName": "Wilson",
+      "yearOpening": "1992-06-15",
+      "TypeCode": "23456",
+      "DebitcreditCard": "48000"
+    },
+    {
+      "srNo": 8,
+      "Group": "Olivia",
+      "subGroup": "Perez",
+      "AccountName": "Young",
+      "yearOpening": "1998-02-28",
+      "TypeCode": "78901",
+      "DebitcreditCard": "53000"
+    },
+    {
+      "srNo": 9,
+      "Group": "Ethan",
+      "subGroup": "Gonzalez",
+      "AccountName": "King",
+      "yearOpening": "2003-12-17",
+      "TypeCode": "89012",
+      "DebitcreditCard": "49000"
+    },
+    {
+      "srNo": 10,
+      "Group": "Isabella",
+      "subGroup": "Anderson",
+      "AccountName": "Carter",
+      "yearOpening": "1996-08-05",
+      "TypeCode": "90123",
+      "DebitcreditCard": "55000"
+    }
+    
+
+ 
+  ]
+  

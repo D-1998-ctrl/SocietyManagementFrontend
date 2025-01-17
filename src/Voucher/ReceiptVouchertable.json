@@ -1,0 +1,83 @@
+[
+    {
+      "srNo": 1,
+      "ReceiptDate": "2025-01-01",
+      "MemberName": "John Doe",
+      "AmountReceived": "5000",
+      "Narration": "Payment for maintenance",
+      "actions": "Edit | Delete"
+    },
+    {
+      "srNo": 2,
+      "ReceiptDate": "2025-01-02",
+      "MemberName": "Jane Smith",
+      "AmountReceived": "4500",
+      "Narration": "Payment for parking fee",
+      "actions": "Edit | Delete"
+    },
+    {
+      "srNo": 3,
+      "ReceiptDate": "2025-01-03",
+      "MemberName": "Michael Johnson",
+      "AmountReceived": "6000",
+      "Narration": "Payment for utilities",
+      "actions": "Edit | Delete"
+    },
+    {
+      "srNo": 4,
+      "ReceiptDate": "2025-01-04",
+      "MemberName": "Emily Davis",
+      "AmountReceived": "7000",
+      "Narration": "Payment for maintenance",
+      "actions": "Edit | Delete"
+    },
+    {
+      "srNo": 5,
+      "ReceiptDate": "2025-01-05",
+      "MemberName": "David Wilson",
+      "AmountReceived": "5500",
+      "Narration": "Payment for utilities",
+      "actions": "Edit | Delete"
+    },
+    {
+      "srNo": 6,
+      "ReceiptDate": "2025-01-06",
+      "MemberName": "Olivia Brown",
+      "AmountReceived": "8000",
+      "Narration": "Payment for parking fee",
+      "actions": "Edit | Delete"
+    },
+    {
+      "srNo": 7,
+      "ReceiptDate": "2025-01-07",
+      "MemberName": "James Lee",
+      "AmountReceived": "3500",
+      "Narration": "Payment for maintenance",
+      "actions": "Edit | Delete"
+    },
+    {
+      "srNo": 8,
+      "ReceiptDate": "2025-01-08",
+      "MemberName": "Sophia Miller",
+      "AmountReceived": "4000",
+      "Narration": "Payment for utilities",
+      "actions": "Edit | Delete"
+    },
+    {
+      "srNo": 9,
+      "ReceiptDate": "2025-01-09",
+      "MemberName": "Daniel Moore",
+      "AmountReceived": "7500",
+      "Narration": "Payment for parking fee",
+      "actions": "Edit | Delete"
+    },
+    {
+      "srNo": 10,
+      "ReceiptDate": "2025-01-10",
+      "MemberName": "Isabella Taylor",
+      "AmountReceived": "6500",
+      "Narration": "Payment for maintenance",
+      "actions": "Edit | Delete"
+    }
+  ]
+  

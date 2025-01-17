@@ -1,0 +1,93 @@
+[
+    {
+      "srNo": 1,
+      "Date": "2025-01-01",
+      "DrName": "John Doe",
+      "DrAmount": 5000,
+      "CrName": "Jane Smith",
+      "CrAmount": 5000,
+      "Narration": "Rent payment for January"
+    },
+    {
+      "srNo": 2,
+      "Date": "2025-01-02",
+      "DrName": "Michael Brown",
+      "DrAmount": 3000,
+      "CrName": "Utility Services",
+      "CrAmount": 3000,
+      "Narration": "Electricity bill payment"
+    },
+    {
+      "srNo": 3,
+      "Date": "2025-01-03",
+      "DrName": "Emma Wilson",
+      "DrAmount": 2500,
+      "CrName": "Water Supply",
+      "CrAmount": 2500,
+      "Narration": "Water charges"
+    },
+    {
+      "srNo": 4,
+      "Date": "2025-01-04",
+      "DrName": "Noah Taylor",
+      "DrAmount": 10000,
+      "CrName": "Society Maintenance",
+      "CrAmount": 10000,
+      "Narration": "Monthly maintenance"
+    },
+    {
+      "srNo": 5,
+      "Date": "2025-01-05",
+      "DrName": "Ava Martinez",
+      "DrAmount": 2000,
+      "CrName": "Parking Charges",
+      "CrAmount": 2000,
+      "Narration": "Parking fee"
+    },
+    {
+      "srNo": 6,
+      "Date": "2025-01-06",
+      "DrName": "Liam Anderson",
+      "DrAmount": 8000,
+      "CrName": "Repair Fund",
+      "CrAmount": 8000,
+      "Narration": "Contribution to repair fund"
+    },
+    {
+      "srNo": 7,
+      "Date": "2025-01-07",
+      "DrName": "Sophia Thomas",
+      "DrAmount": 1500,
+      "CrName": "Clubhouse Charges",
+      "CrAmount": 1500,
+      "Narration": "Clubhouse booking fee"
+    },
+    {
+      "srNo": 8,
+      "Date": "2025-01-08",
+      "DrName": "Benjamin Moore",
+      "DrAmount": 6000,
+      "CrName": "Security Charges",
+      "CrAmount": 6000,
+      "Narration": "Annual security fee"
+    },
+    {
+      "srNo": 9,
+      "Date": "2025-01-09",
+      "DrName": "Mia Johnson",
+      "DrAmount": 7000,
+      "CrName": "Society Fund",
+      "CrAmount": 7000,
+      "Narration": "Society fund contribution"
+    },
+    {
+      "srNo": 10,
+      "Date": "2025-01-10",
+      "DrName": "Oliver White",
+      "DrAmount": 4500,
+      "CrName": "Event Charges",
+      "CrAmount": 4500,
+      "Narration": "New Year's event charges"
+    }
+  ]
+  
