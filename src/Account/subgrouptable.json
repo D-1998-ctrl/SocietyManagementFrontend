@@ -1,0 +1,72 @@
+[
+    {
+        "srNo": 1,
+        "Groupnames": "Accounts",
+        "subGroupcode": "A001",
+        "subGroupName": "Income",
+        "actions": "Edit"
+    },
+    {
+        "srNo": 2,
+        "Groupnames": "Accounts",
+        "subGroupcode": "A002",
+        "subGroupName": "Expenses",
+        "actions": "Edit"
+    },
+    {
+        "srNo": 3,
+        "Groupnames": "Management",
+        "subGroupcode": "M001",
+        "subGroupName": "Administration",
+        "actions": "Edit"
+    },
+    {
+        "srNo": 4,
+        "Groupnames": "Management",
+        "subGroupcode": "M002",
+        "subGroupName": "Operations",
+        "actions": "Edit"
+    },
+    {
+        "srNo": 5,
+        "Groupnames": "Maintenance",
+        "subGroupcode": "M003",
+        "subGroupName": "Cleaning",
+        "actions": "Edit"
+    },
+    {
+        "srNo": 6,
+        "Groupnames": "Maintenance",
+        "subGroupcode": "M004",
+        "subGroupName": "Plumbing",
+        "actions": "Edit"
+    },
+    {
+        "srNo": 7,
+        "Groupnames": "Security",
+        "subGroupcode": "S001",
+        "subGroupName": "Surveillance",
+        "actions": "Edit"
+    },
+    {
+        "srNo": 8,
+        "Groupnames": "Security",
+        "subGroupcode": "S002",
+        "subGroupName": "Access Control",
+        "actions": "Edit"
+    },
+    {
+        "srNo": 9,
+        "Groupnames": "Legal",
+        "subGroupcode": "L001",
+        "subGroupName": "Contracts",
+        "actions": "Edit"
+    },
+    {
+        "srNo": 10,
+        "Groupnames": "Legal",
+        "subGroupcode": "L002",
+        "subGroupName": "Litigation",
+        "actions": "Edit"
+    }
+]

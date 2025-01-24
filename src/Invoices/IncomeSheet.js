@@ -1,13 +1,5 @@
 
-
-
-
-
-
-
-
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useMemo } from 'react';
 import { Box, Button, Typography, TextField, Drawer, Divider, FormControl, Select, MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 import { MaterialReactTable, } from 'material-react-table';
 import CloseIcon from '@mui/icons-material/Close';
@@ -18,7 +10,7 @@ import ContraVoucherTable from '../Voucher/ContraVoucherTable.json'
 import { toWords } from "number-to-words";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
-
+import PaymentVoucherTable from '../Voucher/PaymentVoucherTable.json'
 
 const IncomeSheet = () => {
   // for drawer
@@ -113,7 +105,98 @@ const IncomeSheet = () => {
 
     // Save PDF
     doc.save("invoice.pdf");
+
+
+
+
   };
+
+
+   const columns = useMemo(() => {
+      return [
+        {
+          accessorKey: 'srNo',
+          header: 'Sr No',
+          size: 100,
+        },
+        {
+          accessorKey: 'Date',
+          header: 'Date',
+          size: 150,
+        },
+        {
+          accessorKey: 'NameofCreditor',
+          header: 'Name of Creditor/Expense Head',
+          size: 150,
+        },
+        {
+          accessorKey: 'AmountPaidDr',
+          header: 'Amount Paid Dr',
+          size: 150,
+        },
+  
+        {
+          accessorKey: 'PreviousO/SBills',
+          header: 'Previous O/S Bills Raised',
+          size: 150,
+        },
+  
+        {
+          accessorKey: 'Bank',
+          header: 'Bank',
+          size: 150,
+        },
+  
+        {
+          accessorKey: 'DrName',
+          header: 'DrName',
+          size: 150,
+        },
+  
+        {
+          accessorKey: 'AmountPaidCr',
+          header: 'Amount Paid Cr',
+          size: 150,
+        },
+  
+        {
+          accessorKey: 'TransactionType',
+          header: 'Transaction Type',
+          size: 150,
+        },
+  
+        {
+          accessorKey: 'InstNo',
+          header: 'Inst No',
+          size: 150,
+        },
+  
+        {
+          accessorKey: 'ChequeNo',
+          header: 'Cheque No/Txn No',
+          size: 150,
+        },
+  
+        {
+          accessorKey: 'InstDate',
+          header: 'Inst.Date',
+          size: 150,
+        },
+  
+       
+        {
+          accessorKey: 'Narration',
+          header: 'Narration',
+          size: 150,
+        },
+        {
+          id: 'actions',
+          header: 'Actions',
+          size: 150,
+  
+        },
+      ];
+    }, []);
   return (
     <Box>
       <Box >
@@ -121,6 +204,15 @@ const IncomeSheet = () => {
         <Box sx={{ display: 'flex', gap: 3 }}>
           <Button variant="contained" onClick={handleDrawerOpen}> create Income & Expenditure </Button>
 
+        </Box>
+
+        <Box mt={4}>
+          <MaterialReactTable
+            columns={columns}
+            data={PaymentVoucherTable}
+            enableColumnOrdering
+            enableColumnResizing
+          />
         </Box>
 
 

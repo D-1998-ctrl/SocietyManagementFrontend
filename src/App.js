@@ -24,10 +24,17 @@ import IncomeSheet from './Invoices/IncomeSheet';
 import Balancesheet from './Invoices/Balancesheet';
 import AuditReport from './Invoices/AuditReport';
 import Investmentsheet from './Invoices/Investmentsheet';
+import Accountdash from './Members/Accountdash'
+import Overview from './pages/Overview';
+import Info from './pages/Info';
+import Settings from './Settings/Settings';
+// import LogIn from './pages/LogIn';
+
 function App() {
   return (
     <Router>
       <Routes>
+        {/* <Route path='/' element={<LogIn/>}/> */}
         <Route path='/' element={<Sidebar />} >
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/member/membergroup" element={<GroupMembers />} />
@@ -38,6 +45,14 @@ function App() {
           <Route path="/society/meeting" element={<Meeting />} />
           <Route path="/society/committee" element={<Managingcommittee />} />
           <Route path="/account/accountledger" element={<AccountLedger />} />
+          {/* <Route path="/accountdash" element={<Accountdash />} /> */}
+
+          <Route>
+            <Route path="/accountdash" element={<Accountdash />}>
+              <Route path="overview" element={<Overview />} />
+              <Route path="info" element={<Info/>} />
+            </Route>
+          </Route>
 
           <Route>
             <Route path="/vouchers" element={<Voucher />}>
@@ -60,6 +75,8 @@ function App() {
               <Route path="balancesheet" element={<Balancesheet/>} />
             </Route>
           </Route>
+
+          <Route path='settings' element={<Settings/>}/>
 
         </Route>
       </Routes>

@@ -6,9 +6,10 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import data from '../Members/data.json'
+import { useNavigate } from 'react-router-dom'
 const GroupMembers = () => {
 
-
+  const navigate = useNavigate(); 
   const columns = useMemo(() => {
     return [
       {
@@ -20,6 +21,14 @@ const GroupMembers = () => {
         accessorKey: 'firstName',
         header: 'First Name',
         size: 150,
+        Cell: ({ row }) => (
+          <span
+            style={{ cursor: 'pointer', color: 'blue' }}
+            onClick={() => navigate(`/accountdash/overview`)} 
+          >
+            {row.original.firstName}
+          </span>
+       ),
       },
       {
         accessorKey: 'middleName',
@@ -121,9 +130,7 @@ const GroupMembers = () => {
   //for find member drawer
   // for drawer
   const [Open, setOpen] = useState(false);
-  const handlefindMemberDrawerOpen = () => {
-    setOpen(true);
-  };
+
 
   const handlefindMemberDrawerClose = () => {
     setOpen(false);
@@ -136,7 +143,7 @@ const GroupMembers = () => {
         </Box>
         <Box sx={{ display: 'flex', gap: 3 }}>
           <Button variant="contained" onClick={handleDrawerOpen}>New Member</Button>
-          {/* <Button variant='contained' onClick={handlefindMemberDrawerOpen}>Find Member</Button> */}
+        
         </Box>
 
         <Box mt={4}>

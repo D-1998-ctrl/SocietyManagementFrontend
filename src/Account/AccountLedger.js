@@ -9,6 +9,7 @@ import Accounttable from "../Account/Accounttable.json"
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import subgrouptable from './subgrouptable.json'
 const AccountLedger = () => {
 
 
@@ -60,6 +61,40 @@ const AccountLedger = () => {
         ];
     }, []);
 
+
+
+    const Subgroupcolumns = useMemo(() => {
+        return [
+            {
+                accessorKey: 'srNo',
+                header: 'Sr No',
+                size: 100,
+            },
+            {
+                accessorKey: 'Groupnames',
+                header: 'Group Name',
+                size: 150,
+            },
+            {
+                accessorKey: 'subGroupcode',
+                header: 'Sub Group Code',
+                size: 150,
+            },
+            {
+                accessorKey: 'subGroupName',
+                header: 'Sub Group Name',
+                size: 150,
+            },
+
+            {
+                id: 'actions',
+                header: 'Actions',
+                size: 150,
+
+            },
+        ];
+    }, []);
+
     // const data = [
     //     {
     //         srNo: 1,
@@ -95,13 +130,25 @@ const AccountLedger = () => {
     const handlefindMemberDrawerClose = () => {
         setOpen(false);
     };
+
+
+    //for Add new Sub Group drawer
+
+    const [Opennewsubgruop, setOpenNewSubgroup] = useState(false);
+    const handleOpennewsubgruopDrawerOpen = () => {
+        setOpenNewSubgroup(true);
+    };
+
+    const handleOpennewsubgruopDrawerClose = () => {
+        setOpenNewSubgroup(false);
+    };
     return (
         <Box>
             <Box sx={{ background: 'rgb(236 242 246)', borderRadius: '10px', p: 5, height: 'auto' }}>
                 <Box textAlign={'center'}>
                     <Typography variant='h4'>Ledger Account Management</Typography>
                 </Box>
-                <Box sx={{ display: 'flex', gap: 3,mt:4  }}>
+                <Box sx={{ display: 'flex', gap: 3, mt: 4 }}>
                     <Button variant="contained" onClick={handleDrawerOpen}>Add Ledger Account</Button>
                     <Button variant='contained' onClick={handlefindMemberDrawerOpen}>Add Sub Group</Button>
                     {/* <Button variant='contained' >Add Filter</Button> */}
@@ -126,7 +173,7 @@ const AccountLedger = () => {
                     }}
                 >
                     <Box sx={{ padding: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <Typography m={2} variant="h6"><b>Add Account Ledger</b></Typography>
+                        <Typography m={2} variant="h6"><b>Ledger Account Management</b></Typography>
                         <CloseIcon sx={{ cursor: 'pointer' }} onClick={handleDrawerClose} />
                     </Box>
                     <Divider />
@@ -134,250 +181,93 @@ const AccountLedger = () => {
 
                     <Box>
 
+                        <Box m={2}>
+                            <Box>
+                                <Typography>Group</Typography>
+                                <FormControl fullWidth size="small" margin="normal">
 
-
-
-                        {/* <Box display="flex" alignItems="center" gap={2}>
-                            <Box flex={1}>
-                                <Box m={2} >
-                                    <Typography>Group</Typography>
-                                    <FormControl fullWidth size="small" margin="normal">
-
-                                        <Select>
-                                            <MenuItem value="Home">Group1</MenuItem>
-                                            <MenuItem value="Office">Group2</MenuItem>
-
-                                        </Select>
-                                    </FormControl>
-                                </Box>
-
-                                <Box m={2} >
-                                    <Typography>Account Name</Typography>
-                                    <TextField size="small" margin="normal" placeholder='Account Name'  />
-                                </Box>
+                                    <Select>
+                                        <MenuItem value="Private">Group 1</MenuItem>
+                                        <MenuItem value="FreeHold">Group 2</MenuItem>
+                                    </Select>
+                                </FormControl>
                             </Box>
 
 
-                            <Box flex={1}>
-                                <Box m={2}>
-                                    <Typography> Sub Group</Typography>
-                                    <FormControl fullWidth size="small" margin="normal">
-
-                                        <Select>
-                                            <MenuItem value="Home">Subgroup1</MenuItem>
-                                            <MenuItem value="Office">Subgroup2</MenuItem>
-
-                                        </Select>
-                                    </FormControl>
-                                </Box>
-
-                                <Box >
-                                    <Typography>Year Opening</Typography>
-                                    <TextField size="small" margin="normal" placeholder='Year Opening'/>
-                                </Box>
+                            <Box>
+                                <Typography>Account Name</Typography>
+                                <TextField size="small" margin="normal" placeholder='Account Name' fullWidth />
                             </Box>
-                        </Box> */}
-
-                        <Box display="flex" alignItems="center" gap={2}>
-                            <Box flex={1} m={2}>
-                                <Box>
-                                    <Typography>Group</Typography>
-                                    <FormControl fullWidth size="small" margin="normal">
-
-                                        <Select>
-                                            <MenuItem value="Private">Group 1</MenuItem>
-                                            <MenuItem value="FreeHold">Group 2</MenuItem>
-                                        </Select>
-                                    </FormControl>
-                                </Box>
-
-                                <Box mt={1}>
-                                    <Typography>Lease Period</Typography>
-                                    <TextField size="small" margin="normal" placeholder="Lease Period" fullWidth />
-                                </Box>
-
-                                <Box mt={1}>
-                                    <Typography>CTS No</Typography>
-                                    <TextField size="small" margin="normal" placeholder="CTS No" fullWidth />
-                                </Box>
-
-                                <Box mt={1}>
-                                    <Typography>Plot No</Typography>
-                                    <TextField size="small" margin="normal" placeholder="Plot No" fullWidth />
-                                </Box>
-
-                                <Typography><b>Boundary Details</b></Typography>
-
-                                <Box mt={1}>
-                                    <Typography>On East</Typography>
-                                    <TextField size="small" margin="normal" placeholder="On East" fullWidth />
-                                </Box>
-                                <Box mt={1}>
-                                    <Typography>On North</Typography>
-                                    <TextField size="small" margin="normal" placeholder="On North" fullWidth />
-                                </Box>
-                                <Box mt={1}>
-                                    <Typography>Conveyance Deed in Favour of Society</Typography>
-                                    <FormControl fullWidth size="small" margin="normal" placeholder='Lease Deed Executed'>
-
-                                        <Select>
-                                            <MenuItem value="Private">Yes</MenuItem>
-                                            <MenuItem value="FreeHold">No</MenuItem>
-                                        </Select>
-                                    </FormControl>
-                                </Box>
-
-                                <Box mt={1}>
-                                    <Typography>NA Tax Premium Rs</Typography>
-                                    <TextField size="small" margin="normal" placeholder="NA Tax Premium Rs" fullWidth />
-                                </Box>
-
-                                <Box mt={1}>
-                                    <Typography>Property Tax No</Typography>
-                                    <TextField size="small" margin="normal" placeholder="Property Tax No" fullWidth />
-                                </Box>
-
-                                <Box mt={1}>
-                                    <Typography>Water Supply Authority</Typography>
-                                    <FormControl fullWidth size="small" margin="normal" placeholder='Lease Deed Executed'>
-
-                                        <Select>
-                                            <MenuItem value="Private">BMC</MenuItem>
-                                            <MenuItem value="FreeHold">CIDCO</MenuItem>
-                                            <MenuItem value="FreeHold">PMC</MenuItem>
-                                        </Select>
-                                    </FormControl>
-                                </Box>
 
 
-                                <Box mt={1}>
-                                    <Typography>Water Connection No</Typography>
-                                    <TextField size="small" margin="normal" placeholder="Water Connection No" fullWidth />
-                                </Box>
+                            <Box>
+                                <Typography>Type Code</Typography>
+                                <FormControl fullWidth size="small" margin="normal">
 
-                                <Box mt={1}>
-                                    <Typography>Electricity Supply Service Provider</Typography>
-                                    <FormControl fullWidth size="small" margin="normal" placeholder='Lease Deed Executed'>
-
-                                        <Select>
-                                            <MenuItem value="Private">MAHADISCOM</MenuItem>
-                                            <MenuItem value="FreeHold">BEST</MenuItem>
-                                            <MenuItem value="FreeHold">Tata Power Ltd</MenuItem>
-                                            <MenuItem value="FreeHold">Adani Electricity Mumbai Ltd</MenuItem>
-                                        </Select>
-                                    </FormControl>
-                                </Box>
-
-                                <Box mt={1}>
-                                    <Typography>Water Connection No</Typography>
-                                    <TextField size="small" margin="normal" placeholder="Water Connection No" fullWidth />
-                                </Box>
+                                    <Select>
+                                        <MenuItem value="Private">Balance Sheet</MenuItem>
+                                        <MenuItem value="FreeHold">Profit-loss</MenuItem>
+                                        <MenuItem value="FreeHold">Business</MenuItem>
+                                    </Select>
+                                </FormControl>
                             </Box>
 
 
 
-
-
-
-
-
-                            <Box flex={1} m={2}>
-                                <Box>
-                                    <Typography>Lease Deed Executed</Typography>
-                                    <FormControl fullWidth size="small" margin="normal" placeholder='Lease Deed Executed'>
-
-                                        <Select>
-                                            <MenuItem value="Private">Yes</MenuItem>
-                                            <MenuItem value="FreeHold">No</MenuItem>
-                                        </Select>
-                                    </FormControl>
-                                </Box>
-
-
-                                <Box mt={1}>
-                                    <Typography>Lease Rent Premium Rs</Typography>
-                                    <TextField size="small" margin="normal" placeholder="Lease Rent Premium Rs" fullWidth />
-                                </Box>
-
-                                <Box mt={1}>
-                                    <Typography>Village</Typography>
-                                    <TextField size="small" margin="normal" placeholder="Village" fullWidth />
-                                </Box>
-
-                                <Box mt={1}>
-                                    <Typography>Plot Area</Typography>
-                                    <TextField size="small" margin="normal" placeholder="Plot Area" fullWidth />
-                                </Box>
-
-                                <Typography>&nbsp;</Typography>
-
-                                <Box mt={1}>
-                                    <Typography>On West</Typography>
-                                    <TextField size="small" margin="normal" placeholder="On West" fullWidth />
-                                </Box>
-
-                                <Box mt={1}>
-                                    <Typography>On South</Typography>
-                                    <TextField size="small" margin="normal" placeholder="On South" fullWidth />
-                                </Box>
-                                <Box mt={1}>
-                                    <Typography>Non Agricultural Tax</Typography>
-                                    <TextField size="small" margin="normal" placeholder="Non Agricultural Tax" fullWidth />
-                                </Box>
-
-                                <Box mt={1}>
-                                    <Typography>Property Tax Authority</Typography>
-                                    <FormControl fullWidth size="small" margin="normal" placeholder='Lease Deed Executed'>
-
-                                        <Select>
-                                            <MenuItem value="Private">BMC</MenuItem>
-                                            <MenuItem value="FreeHold">CIDCO</MenuItem>
-                                            <MenuItem value="FreeHold">PMC</MenuItem>
-                                        </Select>
-                                    </FormControl>
-                                </Box>
-
-                                <Box mt={1}>
-                                    <Typography>Property Tax Premium GSTIN Bills</Typography>
-                                    <FormControl fullWidth size="small" margin="normal" placeholder='Lease Deed Executed'>
-
-                                        <Select>
-                                            <MenuItem value="Private">Yes</MenuItem>
-                                            <MenuItem value="FreeHold">No</MenuItem>
-
-                                        </Select>
-                                    </FormControl>
-                                </Box>
-
-                                <Box mt={1}>
-                                    <Typography>No of Water Connections</Typography>
-                                    <FormControl fullWidth size="small" margin="normal" placeholder='No of Water Connections'>
-
-                                        <Select>
-                                            <MenuItem value="Private">1</MenuItem>
-                                            <MenuItem value="FreeHold">2</MenuItem>
-
-                                        </Select>
-                                    </FormControl>
-                                </Box>
-
-                                <Box mt={1}>
-                                    <Typography>Water Bill Generation Dates</Typography>
-                                    <TextField size="small" margin="normal" placeholder="Water Bill Generation Dates" fullWidth />
-                                </Box>
-
-                                <Box mt={1}>
-                                    <Typography>No Electricity Connection</Typography>
-                                    <TextField size="small" margin="normal" placeholder="No Electricity Connection" fullWidth />
-                                </Box>
-
-                                <Box mt={1}>
-                                    <Typography>Water Bill Generation Dates GSTIN Bills</Typography>
-                                    <TextField size="small" margin="normal" placeholder="Water Bill Generation Dates GSTIN Bills" fullWidth />
-                                </Box>
-
-                            </Box>
                         </Box>
+
+
+
+
+
+
+
+
+                        <Box flex={1} m={2}>
+                            <Box>
+                                <Typography>Sub Group</Typography>
+                                <FormControl fullWidth size="small" margin="normal" placeholder='Lease Deed Executed'>
+
+                                    <Select>
+                                        <MenuItem value="Private">Sub group1</MenuItem>
+                                        <MenuItem value="FreeHold">Sub group2</MenuItem>
+                                    </Select>
+                                </FormControl>
+                            </Box>
+
+
+                            <Box>
+                                <LocalizationProvider dateAdapter={AdapterDateFns}>
+                                    <Box  >
+                                        <Typography > Year Opening</Typography>
+                                        <DatePicker
+
+                                            format="dd/MM/yyyy"
+                                            sx={{ width: "100%", }}
+                                            renderInput={(params) => <TextField {...params} size="small" />}
+                                        />
+                                    </Box>
+                                </LocalizationProvider>
+                            </Box>
+
+
+                            <Box>
+                                <Typography>Type Code</Typography>
+                                <FormControl fullWidth size="small" margin="normal">
+
+                                    <Select>
+                                        <MenuItem value="Private">Card1</MenuItem>
+                                        <MenuItem value="FreeHold">Card2</MenuItem>
+
+                                    </Select>
+                                </FormControl>
+                            </Box>
+
+
+
+
+                        </Box>
+
 
 
                     </Box>
@@ -395,232 +285,46 @@ const AccountLedger = () => {
                 </Drawer>
 
 
-                {/* drawer for Property Details */}
+                {/* drawer for subgrouptable */}
                 <Drawer
                     anchor="right"
                     open={Open}
                     onClose={handlefindMemberDrawerClose}
                     PaperProps={{
-                        sx: { width: '40%' }, // Set the width here
+                        sx: { width: '60%' }, // Set the width here
                     }}
                 >
                     <Box sx={{ padding: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <Typography m={2} variant="h6"><b>Property Details</b></Typography>
+                        <Typography m={2} variant="h6"><b>Manage Sub Group</b></Typography>
                         <CloseIcon sx={{ cursor: 'pointer' }} onClick={handlefindMemberDrawerClose} />
                     </Box>
                     <Divider />
 
 
-                    <Box display="flex" alignItems="center" gap={2}>
-                        <Box flex={1} m={2}>
-                            <Box>
-                                <Typography>Land Authority</Typography>
-                                <FormControl fullWidth size="small" margin="normal">
 
-                                    <Select>
-                                        <MenuItem value="Private">Private</MenuItem>
-                                        <MenuItem value="FreeHold">FreeHold</MenuItem>
-                                        <MenuItem value="MHADA">MHADA</MenuItem>
-                                        <MenuItem value="CIDCO">CIDCO</MenuItem>
-                                        <MenuItem value="SRA">SRA</MenuItem>
-                                        <MenuItem value="BMC">BMC</MenuItem>
-                                        <MenuItem value="CollectorLand">Collector Land</MenuItem>
-
-                                    </Select>
-                                </FormControl>
-                            </Box>
-
-                            <Box mt={1}>
-                                <Typography>Lease Period</Typography>
-                                <TextField size="small" margin="normal" placeholder="Lease Period" fullWidth />
-                            </Box>
-
-                            <Box mt={1}>
-                                <Typography>CTS No</Typography>
-                                <TextField size="small" margin="normal" placeholder="CTS No" fullWidth />
-                            </Box>
-
-                            <Box mt={1}>
-                                <Typography>Plot No</Typography>
-                                <TextField size="small" margin="normal" placeholder="Plot No" fullWidth />
-                            </Box>
-
-                            <Typography><b>Boundary Details</b></Typography>
-
-                            <Box mt={1}>
-                                <Typography>On East</Typography>
-                                <TextField size="small" margin="normal" placeholder="On East" fullWidth />
-                            </Box>
-                            <Box mt={1}>
-                                <Typography>On North</Typography>
-                                <TextField size="small" margin="normal" placeholder="On North" fullWidth />
-                            </Box>
-                            <Box mt={1}>
-                                <Typography>Conveyance Deed in Favour of Society</Typography>
-                                <FormControl fullWidth size="small" margin="normal" placeholder='Lease Deed Executed'>
-
-                                    <Select>
-                                        <MenuItem value="Private">Yes</MenuItem>
-                                        <MenuItem value="FreeHold">No</MenuItem>
-                                    </Select>
-                                </FormControl>
-                            </Box>
-
-                            <Box mt={1}>
-                                <Typography>NA Tax Premium Rs</Typography>
-                                <TextField size="small" margin="normal" placeholder="NA Tax Premium Rs" fullWidth />
-                            </Box>
-
-                            <Box mt={1}>
-                                <Typography>Property Tax No</Typography>
-                                <TextField size="small" margin="normal" placeholder="Property Tax No" fullWidth />
-                            </Box>
-
-                            <Box mt={1}>
-                                <Typography>Water Supply Authority</Typography>
-                                <FormControl fullWidth size="small" margin="normal" placeholder='Lease Deed Executed'>
-
-                                    <Select>
-                                        <MenuItem value="Private">BMC</MenuItem>
-                                        <MenuItem value="FreeHold">CIDCO</MenuItem>
-                                        <MenuItem value="FreeHold">PMC</MenuItem>
-                                    </Select>
-                                </FormControl>
-                            </Box>
+                    <Box m={2}>
 
 
-                            <Box mt={1}>
-                                <Typography>Water Connection No</Typography>
-                                <TextField size="small" margin="normal" placeholder="Water Connection No" fullWidth />
-                            </Box>
-
-                            <Box mt={1}>
-                                <Typography>Electricity Supply Service Provider</Typography>
-                                <FormControl fullWidth size="small" margin="normal" placeholder='Lease Deed Executed'>
-
-                                    <Select>
-                                        <MenuItem value="Private">MAHADISCOM</MenuItem>
-                                        <MenuItem value="FreeHold">BEST</MenuItem>
-                                        <MenuItem value="FreeHold">Tata Power Ltd</MenuItem>
-                                        <MenuItem value="FreeHold">Adani Electricity Mumbai Ltd</MenuItem>
-                                    </Select>
-                                </FormControl>
-                            </Box>
-
-                            <Box mt={1}>
-                                <Typography>Water Connection No</Typography>
-                                <TextField size="small" margin="normal" placeholder="Water Connection No" fullWidth />
-                            </Box>
+                        <Box>
+                            <Button onClick={handleOpennewsubgruopDrawerOpen} variant='contained'>Add New Sub Group</Button>
                         </Box>
+                        <Box mt={4}>
+                            <MaterialReactTable
+                                columns={Subgroupcolumns}
+                                data={subgrouptable}
 
-
-
-
-
-
-
-
-                        <Box flex={1} m={2}>
-                            <Box>
-                                <Typography>Lease Deed Executed</Typography>
-                                <FormControl fullWidth size="small" margin="normal" placeholder='Lease Deed Executed'>
-
-                                    <Select>
-                                        <MenuItem value="Private">Yes</MenuItem>
-                                        <MenuItem value="FreeHold">No</MenuItem>
-                                    </Select>
-                                </FormControl>
-                            </Box>
-
-
-                            <Box mt={1}>
-                                <Typography>Lease Rent Premium Rs</Typography>
-                                <TextField size="small" margin="normal" placeholder="Lease Rent Premium Rs" fullWidth />
-                            </Box>
-
-                            <Box mt={1}>
-                                <Typography>Village</Typography>
-                                <TextField size="small" margin="normal" placeholder="Village" fullWidth />
-                            </Box>
-
-                            <Box mt={1}>
-                                <Typography>Plot Area</Typography>
-                                <TextField size="small" margin="normal" placeholder="Plot Area" fullWidth />
-                            </Box>
-
-                            <Typography>&nbsp;</Typography>
-
-                            <Box mt={1}>
-                                <Typography>On West</Typography>
-                                <TextField size="small" margin="normal" placeholder="On West" fullWidth />
-                            </Box>
-
-                            <Box mt={1}>
-                                <Typography>On South</Typography>
-                                <TextField size="small" margin="normal" placeholder="On South" fullWidth />
-                            </Box>
-                            <Box mt={1}>
-                                <Typography>Non Agricultural Tax</Typography>
-                                <TextField size="small" margin="normal" placeholder="Non Agricultural Tax" fullWidth />
-                            </Box>
-
-                            <Box mt={1}>
-                                <Typography>Property Tax Authority</Typography>
-                                <FormControl fullWidth size="small" margin="normal" placeholder='Lease Deed Executed'>
-
-                                    <Select>
-                                        <MenuItem value="Private">BMC</MenuItem>
-                                        <MenuItem value="FreeHold">CIDCO</MenuItem>
-                                        <MenuItem value="FreeHold">PMC</MenuItem>
-                                    </Select>
-                                </FormControl>
-                            </Box>
-
-                            <Box mt={1}>
-                                <Typography>Property Tax Premium GSTIN Bills</Typography>
-                                <FormControl fullWidth size="small" margin="normal" placeholder='Lease Deed Executed'>
-
-                                    <Select>
-                                        <MenuItem value="Private">Yes</MenuItem>
-                                        <MenuItem value="FreeHold">No</MenuItem>
-
-                                    </Select>
-                                </FormControl>
-                            </Box>
-
-                            <Box mt={1}>
-                                <Typography>No of Water Connections</Typography>
-                                <FormControl fullWidth size="small" margin="normal" placeholder='No of Water Connections'>
-
-                                    <Select>
-                                        <MenuItem value="Private">1</MenuItem>
-                                        <MenuItem value="FreeHold">2</MenuItem>
-
-                                    </Select>
-                                </FormControl>
-                            </Box>
-
-                            <Box mt={1}>
-                                <Typography>Water Bill Generation Dates</Typography>
-                                <TextField size="small" margin="normal" placeholder="Water Bill Generation Dates" fullWidth />
-                            </Box>
-
-                            <Box mt={1}>
-                                <Typography>No Electricity Connection</Typography>
-                                <TextField size="small" margin="normal" placeholder="No Electricity Connection" fullWidth />
-                            </Box>
-
-                            <Box mt={1}>
-                                <Typography>Water Bill Generation Dates GSTIN Bills</Typography>
-                                <TextField size="small" margin="normal" placeholder="Water Bill Generation Dates GSTIN Bills" fullWidth />
-                            </Box>
-
+                                enableColumnOrdering
+                                enableColumnResizing
+                            />
                         </Box>
                     </Box>
 
 
 
 
+
+
+                    {/* 
                     <Box display={'flex'} alignItems={'center'} justifyContent={'center'} gap={2} mt={4} mb={4}>
                         <Box>
                             <Button variant='contained'>Save </Button>
@@ -628,6 +332,69 @@ const AccountLedger = () => {
 
                         <Box>
                             <Button onClick={handleDrawerClose} variant='outlined'>Cancel </Button>
+                        </Box>
+                    </Box> */}
+                </Drawer>
+                {/* drawer for add new  subgruop */}
+
+                <Drawer
+                    anchor="right"
+                    open={Opennewsubgruop}
+                    onClose={handleOpennewsubgruopDrawerClose}
+                    PaperProps={{
+                        sx: { width: '40%' },
+                    }}
+                >
+                    <Box sx={{ padding: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <Typography m={2} variant="h6"><b>Ledger Account Management</b></Typography>
+                        <CloseIcon sx={{ cursor: 'pointer' }} onClick={handleOpennewsubgruopDrawerClose} />
+                    </Box>
+                    <Divider />
+
+
+                    <Box>
+
+
+
+                        <Box >
+                            <Typography>Group</Typography>
+                            <FormControl fullWidth size="small" margin="normal">
+
+                                <Select>
+                                    <MenuItem value="Group1">Group1</MenuItem>
+                                    <MenuItem value="Group2">Group2</MenuItem>
+
+                                </Select>
+                            </FormControl>
+                        </Box>
+
+
+
+
+
+                        <Box>
+                            <Typography>Sub Group Code</Typography>
+                            <TextField size="small" margin="normal" placeholder='Sub Group Code' fullWidth />
+                        </Box>
+
+
+                        <Box>
+                            <Typography>Sub Group Name</Typography>
+                            <TextField size="small" margin="normal" placeholder='Sub Group Name' fullWidth />
+                        </Box>
+
+
+
+                    </Box>
+
+
+                    <Box display={'flex'} alignItems={'center'} justifyContent={'center'} gap={2} mt={4}>
+                        <Box>
+                            <Button variant='contained'>Save </Button>
+                        </Box>
+
+                        <Box>
+                            <Button onClick={handleOpennewsubgruopDrawerClose} variant='outlined'>Cancel </Button>
                         </Box>
                     </Box>
                 </Drawer>

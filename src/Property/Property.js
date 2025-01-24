@@ -1,10 +1,8 @@
 import React, { useMemo, useState } from 'react';
-import { Box, Button, Typography, TextField, Drawer, Divider, FormControl, Select, MenuItem, InputLabel, Checkbox } from '@mui/material';
+import { Box, Button, Typography, TextField, Drawer, Divider, FormControl, Select, MenuItem, } from '@mui/material';
 import { MaterialReactTable, } from 'material-react-table';
 import CloseIcon from '@mui/icons-material/Close';
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+
 import propertydata from '../Property/propertydata.json'
 const Property = () => {
 
@@ -111,9 +109,7 @@ const Property = () => {
   
   // for drawer
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const handleDrawerOpen = () => {
-    setIsDrawerOpen(true);
-  };
+
 
   const handleDrawerClose = () => {
     setIsDrawerOpen(false);

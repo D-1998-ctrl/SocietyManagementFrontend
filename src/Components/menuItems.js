@@ -10,6 +10,8 @@ import CorporateFareIcon from '@mui/icons-material/CorporateFare';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import { AccountCircle as AccountCircleIcon, Assessment as AssessmentIcon, }from '@mui/icons-material';
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
+import SettingsIcon from '@mui/icons-material/Settings';
+
 export const menuItems = [
   
 
@@ -23,14 +25,17 @@ export const menuItems = [
 
   {
     title: "Members",
-    path: '/member',
+    path: '/member/membergroup',
     icon: <GroupIcon />,
-    submenus: [
-      {
-        title: "Member Group",
-        path: "/member/membergroup",
-        icon: <FiberManualRecordIcon />,
-      },
+    // submenus: [
+    //   {
+    //     title: "Member Group",
+    //     path: "/member/membergroup",
+    //     icon: <FiberManualRecordIcon />,
+    //   },
+
+
+
       // {
       //   title: "Documents",
       //   path: "/member/documents",
@@ -41,7 +46,7 @@ export const menuItems = [
       //   path: "/member/member-contribution",
       //   icon: <AttachMoneyIcon />,
       // },
-    ],
+    // ],
   },
 
   {
@@ -113,6 +118,12 @@ export const menuItems = [
     submenus: [],
   },
   
+  {
+    title: "Settings",
+    path: "/settings",
+    icon: <SettingsIcon />,
+    submenus: [],
+  },
 
   
 ];

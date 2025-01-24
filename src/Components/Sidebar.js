@@ -22,6 +22,7 @@ import { menuItems } from "./menuItems"; // Import your JSON data
 import logo from '../imgs/companylogo.png'
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import logonew from '../imgs/logonew.png'
+import user from '../imgs/user.jpg'
 
 function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -204,16 +205,47 @@ function Sidebar() {
                   <Link to="#" className="logout-link">
                     <div className="info">
 
-
+{/* 
                       <div>
                         <AiOutlineLogout className="logout-icon" />
-                      </div>
+                      </div> */}
                     </div>
                   </Link>
                 </li>
               </ul>
             </div>
           </Box>
+
+
+          <div className="bottom-content">
+              <ul>
+                <li>
+                  <Link to="#" className="logout-link">
+                    <div className="info" >
+                      <div>
+                        <img src={user} alt="user" className="user-icon" style={{ height: "50px", width: "50px" }} />
+                      </div>
+                      <span className="hidden-text" >
+                        <b>Chavan Diksha</b>
+                        {/* <h6>{userData}</h6> */}
+                      </span>
+
+                      <div>
+                      <AiOutlineLogout  
+                        className="logout-icon"
+                        // onClick={() => {
+                        //   logoutuser();
+                        // }}
+                      />
+                    </div>
+                    </div>
+
+                 
+                  </Link>
+                </li>
+               
+              </ul>
+            </div>
         </Box>
       </aside>
       <main className="main">
