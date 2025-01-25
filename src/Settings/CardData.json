@@ -1,60 +1,27 @@
 [
-    {
-      "id": 1,
-      "NameOfWings": "Wing A",
-      "NoOfWings": "3",
-      "TypeOfUnit": "shop",
-      "Tittle": "Wing A"
-     
-    },
-    {
-        "id": 2,
-        "NameOfWings": "Wing B",
-        "NoOfWings": "2",
-        "TypeOfUnit": "Duplex",
-        "Tittle": "Wing B"
-      },
-
-      {
-        "id": 3,
-        "NameOfWings": "Wing C",
-        "NoOfWings": "6",
-        "TypeOfUnit": "2 BHK",
-        "Tittle": "Wing C"
-       
-      },
-      {
-          "id": 4,
-          "NameOfWings": "Wing D",
-          "NoOfWings": "2",
-          "TypeOfUnit": "OFFICE",
-          "Tittle": "Wing D"
-        },
-        {
-            "id": 5,
-            "NameOfWings": "Wing A",
-            "NoOfWings": "3",
-            "TypeOfUnit": "Duplex",
-            "Tittle": "Wing A"
-           
-          },
-          {
-              "id": 6,
-              "NameOfWings": "B1",
-              "NoOfWings": "8",
-              "TypeOfUnit": "2BHK",
-              "Tittle": "Wing B1"
-            },
-      
-            {
-              "id": 7,
-              "NameOfWings": "C1",
-              "NoOfWings": "5",
-              "TypeOfUnit": "2 BHK",
-              "Tittle": "Wing C1"
-             
-            }
-            
-
-  ]
+  {
+    "id": 1,
+    "NameOfWings": "Wing A",
+    "NoOfWings": "3",
+    "Typeofunits": "Shop"
+  },
+  {
+    "id": 2,
+    "NameOfWings": "Wing B",
+    "NoOfWings": "2",
+    "Typeofunits": "1BHK"
+  },
+  {
+    "id": 3,
+    "NameOfWings": "Wing C",
+    "NoOfWings": "6",
+    "Typeofunits": "Shop"
+  },
+  {
+    "id": 4,
+    "NameOfWings": "Wing D",
+    "NoOfWings": "2",
+    "Typeofunits": "Office"
+  }
   
+]
