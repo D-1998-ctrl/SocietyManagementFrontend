@@ -2,8 +2,8 @@
 
 
 
-import React, { useState, useEffect,useMemo } from 'react';
-import { Box, Button, Typography, TextField, Drawer, Divider, FormControl, Select, MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Alert, Autocomplete, useMediaQuery, Menu, Box, Button, Typography, TextField, Drawer, Divider, FormControl, Select, MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 import { MaterialReactTable, } from 'material-react-table';
 import CloseIcon from '@mui/icons-material/Close';
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -14,9 +14,14 @@ import { toWords } from "number-to-words";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import PaymentVoucherTable from '../Voucher/PaymentVoucherTable.json'
-
+import Textarea from '@mui/joy/Textarea';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import { useTheme } from "@mui/material/styles";
 
 const BillInvoice = () => {
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+
   // for drawer
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const handleDrawerOpen = () => {
@@ -68,48 +73,48 @@ const BillInvoice = () => {
 
   // Convert SubTotal to Words
   const subTotalInWords = subTotal > 0 ? toWords(subTotal) : "0";
-//
-const handleGeneratePdf = () => {
-  const doc = new jsPDF();
+  //
+  const handleGeneratePdf = () => {
+    const doc = new jsPDF();
 
-  // Add Title
-  doc.setFontSize(16);
-  doc.text("Society Bill", 14, 20);
+    // Add Title
+    doc.setFontSize(16);
+    doc.text("Society Bill", 14, 20);
 
-  // Table data
-  const tableData = items.map((item, index) => [
-    index + 1,
-    item.description || "-",
-    item.amount || "0",
-  ]);
+    // Table data
+    const tableData = items.map((item, index) => [
+      index + 1,
+      item.description || "-",
+      item.amount || "0",
+    ]);
 
-  // AutoTable
-  doc.autoTable({
-    startY: 30,
-    head: [["SR NO.", "Description", "Amount"]],
-    body: tableData,
-  });
+    // AutoTable
+    doc.autoTable({
+      startY: 30,
+      head: [["SR NO.", "Description", "Amount"]],
+      body: tableData,
+    });
 
-  // Subtotal and Amount in Words
- 
-    
+    // Subtotal and Amount in Words
+
+
     const subtotal = items.reduce((total, item) => total + parseFloat(item.amount || 0), 0);
-    const y = doc.lastAutoTable.finalY + 10; 
-  
-    doc.setFontSize(12); 
+    const y = doc.lastAutoTable.finalY + 10;
+
+    doc.setFontSize(12);
     doc.text("SubTotal: ", 14, y);
-    doc.setFont("helvetica","bold");
+    doc.setFont("helvetica", "bold");
     doc.text(`${subtotal}`, 40, y);
-  
+
     const amountInWordsY = y + 10;
-    doc.setFont("helvetica", "normal"); 
+    doc.setFont("helvetica", "normal");
     doc.text("Amount in Words: ", 14, amountInWordsY);
-    doc.setFont("helvetica", "bold"); 
+    doc.setFont("helvetica", "bold");
     doc.text(`${subTotalInWords}`, 60, amountInWordsY);
 
-  // Save PDF
-  doc.save("invoice.pdf");
-};
+    // Save PDF
+    doc.save("invoice.pdf");
+  };
 
 
 
@@ -187,7 +192,7 @@ const handleGeneratePdf = () => {
         size: 150,
       },
 
-     
+
       {
         accessorKey: 'Narration',
         header: 'Narration',
@@ -203,6 +208,53 @@ const handleGeneratePdf = () => {
   }, []);
 
 
+  const [anchorEl, setAnchorEl] = useState(null);
+
+  const handleMenuOpen = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+
+  //validation
+  const [formValues, setFormValues] = useState({
+    DRMemberName: "",
+    BillNumber: "",
+    BillDate: "",
+    Period: "",
+    DueDate: "",
+  });
+
+  const [formErrors, setFormErrors] = useState({});
+
+  const handlevalidationChange = (field, value) => {
+    setFormValues((prev) => ({ ...prev, [field]: value }));
+    setFormErrors((prev) => ({ ...prev, [field]: "" })); // Clear error on change
+  };
+
+  const validate = () => {
+    const errors = {};
+
+    if (!formValues.DRMemberName) errors.DRMemberName = "DR Membe rName is required.";
+    if (!formValues.BillNumber) errors.BillNumber = "Bill Number is required.";
+    if (!formValues.BillDate) errors.BillDate = "Bill Date is required.";
+    if (!formValues.Period) errors.Period = "Period is required.";
+    if (!formValues.DueDate) errors.DueDate = "Due Date is required.";
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0; // Return true if no errors
+  };
+
+  const handleSave = () => {
+    if (validate()) {
+      // Perform save action
+      console.log("Form submitted:", formValues);
+      handleDrawerClose();
+    }
+  };
+
 
   return (
     <Box>
@@ -212,7 +264,7 @@ const handleGeneratePdf = () => {
           <Button variant="contained" onClick={handleDrawerOpen}> create Bill Invoice</Button>
 
         </Box>
-       
+
 
         <Box mt={4}>
           <MaterialReactTable
@@ -229,30 +281,200 @@ const handleGeneratePdf = () => {
           open={isDrawerOpen}
           onClose={handleDrawerClose}
           PaperProps={{
-            sx: { width: '60%' }, // Set the width here
+            sx: {
+              width: isSmallScreen ? "100%" : '60%',
+              borderRadius: isSmallScreen ? "0" : "10px 0 0 10px",
+              zIndex: 1000,
+            },
           }}
         >
-          <Box sx={{ padding: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Typography m={2} variant="h6"><b>Bill Invoice</b></Typography>
-            <CloseIcon sx={{ cursor: 'pointer' }} onClick={handleDrawerClose} />
+
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              padding: 3,
+              borderBottom: "1px solid #ccc",
+            }}
+          >
+
+            <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+              Create Bill Invoice
+            </Typography>
+
+
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 2,
+              }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  cursor: "pointer",
+                  color: "primary.main",
+                }}
+              >
+                <MoreVertIcon sx={{ cursor: 'pointer', color: 'black' }} onClick={handleMenuOpen} />
+                <Menu
+                  anchorEl={anchorEl}
+                  open={Boolean(anchorEl)}
+                  onClose={handleMenuClose}
+                >
+                  <MenuItem>Preview</MenuItem>
+                  <MenuItem onClick={handleGeneratePdf}>Generate Report </MenuItem>
+                </Menu>
+              </Box>
+
+
+              <Box sx={{ cursor: "pointer" }}>
+                <CloseIcon  onClick={handleDrawerClose}/>
+              </Box>
+            </Box>
           </Box>
+
+
           <Divider />
           <Box>
 
 
+
             <Box m={2}>
-              <Typography>Member Name</Typography>
-              <TextField size="small" margin="normal" placeholder='Member Name' fullWidth />
+              <Typography>DR Member Name</Typography>
+              <Autocomplete
+                // options={options}
+                sx={{ mt: 2, mb: 2, backgroundColor: '#fff' }}
+                size='small'
+                // value={selecteduser}
+                // onChange={handleuserChange}
+                onChange={(e) => handlevalidationChange("DRMemberName", e.target.value)}
+                value={formValues.DRMemberName}
+                error={!!formErrors.DRMemberName}
+
+                isOptionEqualToValue={(option, value) => option.value === value.value}
+                getOptionLabel={(option) => option.label || ""}
+                renderInput={(params) => (
+                  <>
+                    <TextField
+                      {...params}
+                      // error={!!selectedUserError}
+
+                      placeholder="Member Name"
+                    />
+
+                  </>
+                )}
+                isClearable={true}
+              />
+              {(!!formErrors.DRMemberName) && (
+                <Alert severity="error" sx={{
+                  width: '92%',
+                  p: '2',
+                  pl: '4%', height: '23px',
+                  borderRadius: '8px',
+                  borderTopLeftRadius: '0',
+                  borderTopRightRadius: '0',
+                  fontSize: '12px',
+                  display: 'flex',
+                  backgroundColor: "#ffdddd",
+                  color: "#a00",
+                  alignItems: 'center',
+                  '& .MuiAlert-icon': {
+                    fontSize: '16px',
+                    mr: '8px',
+                  },
+                }}>
+                  {formErrors.DRMemberName}
+                </Alert>
+              )}
             </Box>
 
             <Box display={'flex'} alignItems="center" gap={2} >
               <Box flex={1} m={2}>
                 <Box>
-                  <Typography>Bill Number:</Typography>
-                  <TextField size="small" margin="normal" placeholder='Bill Number:' fullWidth />
+                  <Typography>Bill Number</Typography>
+                  <TextField type='number' size="small" margin="normal" placeholder='Bill Number:' fullWidth error={!!formErrors.BillNumber} value={formValues.BillNumber} onChange={(e) => handlevalidationChange("BillNumber", e.target.value)}
+                    InputProps={{
+                      inputProps: { style: { appearance: 'textfield' }, step: 'any' },
+                    }}
+                    sx={{
+                      '& input[type=number]': {
+                        MozAppearance: 'textfield',
+                        WebkitAppearance: 'textfield',
+                      },
+                      '& input[type=number]::-webkit-outer-spin-button, & input[type=number]::-webkit-inner-spin-button': {
+                        WebkitAppearance: 'none',
+                        margin: 0,
+                      },
+                    }} />
+                  {(!!formErrors.BillNumber) && (
+                    <Alert severity="error" sx={{
+                      width: '92%',
+                      p: '2',
+                      pl: '4%', height: '23px',
+                      borderRadius: '8px',
+                      borderTopLeftRadius: '0',
+                      borderTopRightRadius: '0',
+                      fontSize: '12px',
+                      display: 'flex',
+                      backgroundColor: "#ffdddd",
+                      color: "#a00",
+                      alignItems: 'center',
+                      '& .MuiAlert-icon': {
+                        fontSize: '16px',
+                        mr: '8px',
+                      },
+                    }}>
+                      {formErrors.BillNumber}
+                    </Alert>
+                  )}
                 </Box>
 
+
                 <Box>
+                  <Typography>Period</Typography>
+                  <TextField size="small" type='number' margin="normal" onChange={(e) => handlevalidationChange("Period", e.target.value)} value={formValues.Period} error={!!formErrors.Period} placeholder='Period' fullWidth
+                    InputProps={{
+                      inputProps: { style: { appearance: 'textfield' }, step: 'any' },
+                    }}
+                    sx={{
+                      '& input[type=number]': {
+                        MozAppearance: 'textfield',
+                        WebkitAppearance: 'textfield',
+                      },
+                      '& input[type=number]::-webkit-outer-spin-button, & input[type=number]::-webkit-inner-spin-button': {
+                        WebkitAppearance: 'none',
+                        margin: 0,
+                      },
+                    }} />
+
+                  {(!!formErrors.Period) && (
+                    <Alert severity="error" sx={{
+                      width: '92%',
+                      p: '2',
+                      pl: '4%', height: '23px',
+                      borderRadius: '8px',
+                      borderTopLeftRadius: '0',
+                      borderTopRightRadius: '0',
+                      fontSize: '12px',
+                      display: 'flex',
+                      backgroundColor: "#ffdddd",
+                      color: "#a00",
+                      alignItems: 'center',
+                      '& .MuiAlert-icon': {
+                        fontSize: '16px',
+                        mr: '8px',
+                      },
+                    }}>
+                      {formErrors.Period}
+                    </Alert>
+                  )}
+                </Box>
+                {/* <Box>
                   <LocalizationProvider dateAdapter={AdapterDateFns}>
                     <Box  >
                       <Typography > Period:</Typography>
@@ -264,7 +486,7 @@ const handleGeneratePdf = () => {
                       />
                     </Box>
                   </LocalizationProvider>
-                </Box>
+                </Box> */}
 
               </Box>
 
@@ -273,13 +495,36 @@ const handleGeneratePdf = () => {
                 <Box>
                   <LocalizationProvider dateAdapter={AdapterDateFns}>
                     <Box  >
-                      <Typography > Bill Date:</Typography>
+                      <Typography > Bill Date</Typography>
                       <DatePicker
-
+                        // onChange={(e) => handlevalidationChange("DueDate", e.target.value)}
+                        // value={formValues.DueDate}
+                        // error={!!formErrors.DueDate}
                         format="dd/MM/yyyy"
                         sx={{ width: "100%", }}
                         renderInput={(params) => <TextField {...params} size="small" />}
                       />
+                      {(!!formErrors.BillDate) && (
+                        <Alert severity="error" sx={{
+                          width: '92%',
+                          p: '2',
+                          pl: '4%', height: '23px',
+                          borderRadius: '8px',
+                          borderTopLeftRadius: '0',
+                          borderTopRightRadius: '0',
+                          fontSize: '12px',
+                          display: 'flex',
+                          backgroundColor: "#ffdddd",
+                          color: "#a00",
+                          alignItems: 'center',
+                          '& .MuiAlert-icon': {
+                            fontSize: '16px',
+                            mr: '8px',
+                          },
+                        }}>
+                          {formErrors.BillDate}
+                        </Alert>
+                      )}
                     </Box>
                   </LocalizationProvider>
                 </Box>
@@ -289,13 +534,34 @@ const handleGeneratePdf = () => {
                 <Box>
                   <LocalizationProvider dateAdapter={AdapterDateFns}>
                     <Box  >
-                      <Typography > Due Date:</Typography>
+                      <Typography > Due Date</Typography>
                       <DatePicker
 
                         format="dd/MM/yyyy"
                         sx={{ width: "100%", }}
                         renderInput={(params) => <TextField {...params} size="small" />}
                       />
+                      {(!!formErrors.DueDate) && (
+                        <Alert severity="error" sx={{
+                          width: '92%',
+                          p: '2',
+                          pl: '4%', height: '23px',
+                          borderRadius: '8px',
+                          borderTopLeftRadius: '0',
+                          borderTopRightRadius: '0',
+                          fontSize: '12px',
+                          display: 'flex',
+                          backgroundColor: "#ffdddd",
+                          color: "#a00",
+                          alignItems: 'center',
+                          '& .MuiAlert-icon': {
+                            fontSize: '16px',
+                            mr: '8px',
+                          },
+                        }}>
+                          {formErrors.DueDate}
+                        </Alert>
+                      )}
                     </Box>
                   </LocalizationProvider>
                 </Box>
@@ -309,7 +575,7 @@ const handleGeneratePdf = () => {
                   <TableHead>
                     <TableRow>
                       <TableCell>SR NO.</TableCell>
-                      <TableCell>Description</TableCell>
+                      <TableCell>Particulars</TableCell>
                       <TableCell>Amount</TableCell>
                       <TableCell>Action</TableCell>
                     </TableRow>
@@ -322,8 +588,9 @@ const handleGeneratePdf = () => {
                           <TextField
                             size='small'
                             type="text"
-                            name="description"
-                            placeholder="Item Description"
+                            name="Particulars" nvoice Template
+
+                            placeholder=" Particulars"
                             value={item.description}
                             onChange={(e) => handleInputChange(e, index)}
 
@@ -337,6 +604,19 @@ const handleGeneratePdf = () => {
                             placeholder="Amount"
                             value={item.amount}
                             onChange={(e) => handleInputChange(e, index)}
+                            InputProps={{
+                              inputProps: { style: { appearance: 'textfield' }, step: 'any' },
+                            }}
+                            sx={{
+                              '& input[type=number]': {
+                                MozAppearance: 'textfield',
+                                WebkitAppearance: 'textfield',
+                              },
+                              '& input[type=number]::-webkit-outer-spin-button, & input[type=number]::-webkit-inner-spin-button': {
+                                WebkitAppearance: 'none',
+                                margin: 0,
+                              },
+                            }}
 
                           />
                         </TableCell>
@@ -348,7 +628,21 @@ const handleGeneratePdf = () => {
                           )}
                         </TableCell>
                       </TableRow>
+
+
+
+
                     ))}
+
+                    <TableRow >
+                      <TableCell colSpan={2} align="right" sx={{ fontWeight: "bold", }}>
+                        Sub-Total
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: "bold" }}>
+                        {items.reduce((total, item) => total + parseFloat(item.amount || 0), 0)}
+                      </TableCell>
+                      <TableCell></TableCell>
+                    </TableRow>
                   </TableBody>
                 </Table>
               </TableContainer>
@@ -363,7 +657,7 @@ const handleGeneratePdf = () => {
 
             </Box>
 
-            <Box mt={2} m={2}>
+            {/* <Box mt={2} m={2}>
               <Typography sx={{ fontWeight: 'bold' }}>SubTotal</Typography>
               <TextField
                 size="small"
@@ -373,7 +667,7 @@ const handleGeneratePdf = () => {
 
                 fullWidth
               />
-            </Box>
+            </Box> */}
 
             <Box mt={2} m={2}>
               <Typography sx={{ fontWeight: "bold" }}>Amount in Words:</Typography>
@@ -392,13 +686,13 @@ const handleGeneratePdf = () => {
 
             <Box m={2}>
               <Typography>Narration:</Typography>
-              <TextField size="small" margin="normal" placeholder='Narration' fullWidth />
+              <Textarea minRows={3} placeholder='Narration' fullWidth />
             </Box>
 
-            <Box m={2}>
+            {/* <Box m={2}>
               <Typography>Email Address:</Typography>
               <TextField size="small" margin="normal" placeholder='Email Address' fullWidth />
-            </Box>
+            </Box> */}
 
 
 
@@ -406,8 +700,12 @@ const handleGeneratePdf = () => {
           </Box>
 
           <Box display={'flex'} alignItems={'center'} justifyContent={'center'} gap={2} m={1}>
-            <Box>
+            {/* <Box>
               <Button onClick={handleGeneratePdf} variant='contained'>Generate Pdf </Button>
+            </Box> */}
+
+            <Box>
+              <Button onClick={handleSave} variant='contained'>Save</Button>
             </Box>
 
             <Box>

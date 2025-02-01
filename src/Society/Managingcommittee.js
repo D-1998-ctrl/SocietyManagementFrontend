@@ -1,13 +1,15 @@
 
 import React, { useMemo, useState } from 'react';
-import { Box, Button, Typography, TextField, Drawer, Divider, FormControl, Select, MenuItem, InputLabel, Checkbox } from '@mui/material';
+import { Alert, useMediaQuery, Box, Button, Typography, TextField, Drawer, Divider, FormControl, Select, MenuItem, InputLabel, Checkbox } from '@mui/material';
 import { MaterialReactTable, } from 'material-react-table';
 import CloseIcon from '@mui/icons-material/Close';
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { useTheme } from "@mui/material/styles";
 const Managingcommittee = () => {
-
+const theme = useTheme();
+ const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
   const columns = useMemo(() => {
     return [
@@ -116,8 +118,11 @@ const Managingcommittee = () => {
           open={isDrawerOpen}
           onClose={handleDrawerClose}
           PaperProps={{
-            sx: { width: '40%' },
+            sx: { borderRadius: isSmallScreen ? "0" : "10px 0 0 10px",
+              width: isSmallScreen ? "100%" : "650px",
+              zIndex: 1000, }, // Set the width here
           }}
+          
         >
           <Box sx={{ padding: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Typography m={2} variant="h6"><b>Board Of Directors</b></Typography>

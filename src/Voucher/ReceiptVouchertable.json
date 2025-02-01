@@ -5,7 +5,8 @@
       "MemberName": "John Doe",
       "AmountReceived": "5000",
       "Narration": "Payment for maintenance",
-      "actions": "Edit | Delete"
+      "actions": "Edit | Delete",
+      "Type":"Cr/Dr"
     },
     {
       "srNo": 2,

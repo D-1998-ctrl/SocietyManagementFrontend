@@ -1,11 +1,12 @@
 import React, { useMemo, useState } from 'react';
-import { Box, Button, Typography, TextField, Drawer, Divider, FormControl, Select, MenuItem, } from '@mui/material';
+import { Alert, useMediaQuery, Box, Button, Typography, TextField, Drawer, Divider, FormControl, Select,  MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 import { MaterialReactTable, } from 'material-react-table';
 import CloseIcon from '@mui/icons-material/Close';
-
+import { useTheme } from "@mui/material/styles";
 import propertydata from '../Property/propertydata.json'
 const Property = () => {
-
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
   const columns = useMemo(() => {
     return [
@@ -106,7 +107,7 @@ const Property = () => {
     ];
   }, []);
 
-  
+
   // for drawer
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
@@ -125,6 +126,10 @@ const Property = () => {
   const handlefindMemberDrawerClose = () => {
     setOpen(false);
   };
+
+
+
+ 
   return (
     <Box>
       <Box sx={{ background: 'rgb(236 242 246)', borderRadius: '10px', p: 5, height: 'auto' }}>
@@ -223,7 +228,9 @@ const Property = () => {
           open={Open}
           onClose={handlefindMemberDrawerClose}
           PaperProps={{
-            sx: { width: '40%' }, // Set the width here
+            sx: { borderRadius: isSmallScreen ? "0" : "10px 0 0 10px",
+              width: isSmallScreen ? "100%" : "650px",
+              zIndex: 1000, }, // Set the width here
           }}
         >
           <Box sx={{ padding: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -310,7 +317,7 @@ const Property = () => {
                 </FormControl>
               </Box>
 
-              
+
               <Box mt={1}>
                 <Typography>Water Connection No</Typography>
                 <TextField size="small" margin="normal" placeholder="Water Connection No" fullWidth />
@@ -371,7 +378,7 @@ const Property = () => {
               </Box>
 
               <Typography>&nbsp;</Typography>
-      
+
               <Box mt={1}>
                 <Typography>On West</Typography>
                 <TextField size="small" margin="normal" placeholder="On West" fullWidth />
@@ -381,7 +388,7 @@ const Property = () => {
                 <Typography>On South</Typography>
                 <TextField size="small" margin="normal" placeholder="On South" fullWidth />
               </Box>
-              <Box mt={1}>
+              <Box >
                 <Typography>Non Agricultural Tax</Typography>
                 <TextField size="small" margin="normal" placeholder="Non Agricultural Tax" fullWidth />
               </Box>
@@ -405,7 +412,7 @@ const Property = () => {
                   <Select>
                     <MenuItem value="Private">Yes</MenuItem>
                     <MenuItem value="FreeHold">No</MenuItem>
-              
+
                   </Select>
                 </FormControl>
               </Box>
@@ -417,7 +424,7 @@ const Property = () => {
                   <Select>
                     <MenuItem value="Private">1</MenuItem>
                     <MenuItem value="FreeHold">2</MenuItem>
-              
+
                   </Select>
                 </FormControl>
               </Box>
@@ -449,7 +456,7 @@ const Property = () => {
             </Box>
 
             <Box>
-              <Button onClick={handleDrawerClose} variant='outlined'>Cancel </Button>
+              <Button onClick={handlefindMemberDrawerClose} variant='outlined'>Cancel </Button>
             </Box>
           </Box>
         </Drawer>

@@ -1,18 +1,19 @@
 
-
-
-
 import React, { useMemo, useState } from 'react';
-import { Box, Button, Typography, TextField, Drawer, Divider, FormControl, Select, MenuItem, InputLabel, Checkbox } from '@mui/material';
+import {Alert, useMediaQuery, Menu, Box, Button, Typography, TextField, Drawer, Divider, FormControl, Select, MenuItem, InputLabel, Checkbox } from '@mui/material';
 import { MaterialReactTable, } from 'material-react-table';
 import CloseIcon from '@mui/icons-material/Close';
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import PurchaseVoucherTable from './PurchaseVoucherTable.json'
+import Textarea from '@mui/joy/Textarea';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import { useTheme } from "@mui/material/styles";
 
 const PurchaseVoucher = () => {
-
+const theme = useTheme();
+const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
   const columns = useMemo(() => {
     return [
@@ -160,7 +161,11 @@ const PurchaseVoucher = () => {
           open={isDrawerOpen}
           onClose={handleDrawerClose}
           PaperProps={{
-            sx: { width: '40%' }, // Set the width here
+            sx: {
+              width: isSmallScreen ? "100%" : '40%',
+              borderRadius: isSmallScreen ? "0" : "10px 0 0 10px",
+              zIndex: 1000,
+            },
           }}
         >
           <Box sx={{ padding: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -200,7 +205,7 @@ const PurchaseVoucher = () => {
                 </Box>
 
                 <Box>
-                  <Typography>DR: Name of Head / Ledger / Expenses Ledger</Typography>
+                  <Typography>DR: Name of Ledger </Typography>
                   <TextField size="small" margin="normal" placeholder='DR: Name of Head / Ledger / Expenses Ledger' fullWidth />
                 </Box>
 
@@ -214,10 +219,10 @@ const PurchaseVoucher = () => {
                   <TextField size="small" margin="normal" placeholder='SGST @ 9%' fullWidth />
                 </Box>
 
-                <Box>
+                {/* <Box>
                   <Typography>Customer No.</Typography>
                   <TextField size="small" margin="normal" placeholder='Customer No.' fullWidth />
-                </Box>
+                </Box> */}
 
                 <Box>
                   <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -268,18 +273,19 @@ const PurchaseVoucher = () => {
                   <TextField size="small" margin="normal" placeholder='Bill No' fullWidth />
                 </Box>
 
-                <Box>
-                  <Typography>Bill Period</Typography>
-                  <TextField size="small" margin="normal" placeholder='Bill Period' fullWidth />
-                </Box>
+
               </Box>
             </Box>
 
+            <Box m={2}>
+              <Typography>Bill Period</Typography>
+              <TextField size="small" margin="normal" placeholder='Bill Period' fullWidth />
+            </Box>
 
             <Box m={2}>
-              <Typography>Narration</Typography>
-              <TextField size="small" margin="normal" placeholder='Narration' fullWidth />
-            </Box>
+            <Typography>Narration:</Typography>
+            <Textarea minRows={3} placeholder='Narration' fullWidth />
+          </Box>
 
 
 

@@ -1,6 +1,6 @@
 
 import React, { useMemo, useState } from 'react';
-import { Box, Button, Typography, TextField, Drawer, Divider, FormControl, Select, MenuItem, InputLabel, Checkbox, Menu } from '@mui/material';
+import {  Alert, useMediaQuery,Box, Button, Typography, TextField, Drawer, Divider, FormControl, Select, MenuItem, InputLabel, Checkbox, Menu } from '@mui/material';
 import { MaterialReactTable, } from 'material-react-table';
 import CloseIcon from '@mui/icons-material/Close';
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -8,9 +8,11 @@ import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import meetingdata from './meetingdata.json'
+import { useTheme } from "@mui/material/styles";
 
 const Meeting = () => {
-
+ const theme = useTheme();
+ const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
     const columns = useMemo(() => {
         return [
@@ -195,8 +197,10 @@ const Meeting = () => {
                     open={isDrawerOpen}
                     onClose={handleDrawerClose}
                     PaperProps={{
-                        sx: { width: '40%' },
-                    }}
+                        sx: { borderRadius: isSmallScreen ? "0" : "10px 0 0 10px",
+                          width: isSmallScreen ? "100%" : "650px",
+                          zIndex: 1000, }, // Set the width here
+                      }}
                 >
                     <Box sx={{ padding: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <Typography m={2} variant="h6"><b> Add New Meeting</b></Typography>
@@ -299,9 +303,13 @@ const Meeting = () => {
                     anchor="right"
                     open={meetingSubjectDrawerOpen}
                     onClose={handleMeetingSubjectDrawerClose}
-                    PaperProps={{
-                        sx: { width: '45%' },
-                    }}
+                    PaperProps=
+                        {{
+                            sx: { borderRadius: isSmallScreen ? "0" : "10px 0 0 10px",
+                              width: isSmallScreen ? "100%" : "650px",
+                              zIndex: 1000, }, // Set the width here
+                          }}
+                    
                 >
                     <Box sx={{ padding: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <Typography m={2} variant="h6"><b>  Meeting Subject</b></Typography>
@@ -360,9 +368,13 @@ const Meeting = () => {
                     anchor="right"
                     open={meetingOfficerDrawerOpen}
                     onClose={handleMeetingOfficerDrawerClose}
-                    PaperProps={{
-                        sx: { width: '40%' },
-                    }}
+                    PaperProps=
+                        {{
+                            sx: { borderRadius: isSmallScreen ? "0" : "10px 0 0 10px",
+                              width: isSmallScreen ? "100%" : "650px",
+                              zIndex: 1000, }, // Set the width here
+                          }}
+                   
                 >
                     <Box sx={{ padding: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <Typography m={2} variant="h6"><b> Meeting Officer</b></Typography>
@@ -403,9 +415,11 @@ const Meeting = () => {
                     anchor="right"
                     open={meetingResolutionDrawerOpen}
                     onClose={handleMeetingResolutionDrawerClose}
-                    PaperProps={{
-                        sx: { width: '40%' },
-                    }}
+                    PaperProps= {{
+                        sx: { borderRadius: isSmallScreen ? "0" : "10px 0 0 10px",
+                          width: isSmallScreen ? "100%" : "650px",
+                          zIndex: 1000, }, // Set the width here
+                      }}
                 >
                     <Box sx={{ padding: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <Typography m={2} variant="h6"><b>Meeting Resolution</b></Typography>

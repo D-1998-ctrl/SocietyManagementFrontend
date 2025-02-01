@@ -1,15 +1,20 @@
 
 import React, { useMemo, useState } from 'react';
-import { Box, Button, Typography, TextField, Drawer, Divider, FormControl, Select, MenuItem, InputLabel, Checkbox } from '@mui/material';
+import { Alert, Autocomplete, Menu, useMediaQuery, Box, Button, Typography, TextField, Drawer, Divider, FormControl, Select, MenuItem, InputLabel, Checkbox } from '@mui/material';
 import { MaterialReactTable, } from 'material-react-table';
 import CloseIcon from '@mui/icons-material/Close';
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import PaymentVoucherTable from '../Voucher/PaymentVoucherTable.json'
+import Textarea from '@mui/joy/Textarea';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import { useTheme } from "@mui/material/styles";
+
 
 const PaymentVoucher = () => {
-
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
   const columns = useMemo(() => {
     return [
@@ -82,7 +87,7 @@ const PaymentVoucher = () => {
         size: 150,
       },
 
-     
+
       {
         accessorKey: 'Narration',
         header: 'Narration',
@@ -130,6 +135,17 @@ const PaymentVoucher = () => {
   const handlefindMemberDrawerClose = () => {
     setOpen(false);
   };
+
+  //
+  const [anchorEl, setAnchorEl] = useState(null);
+
+  const handleMenuOpen = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
   return (
     <Box>
       <Box sx={{ background: 'rgb(236 242 246)', borderRadius: '10px', p: 5, height: 'auto' }}>
@@ -153,108 +169,234 @@ const PaymentVoucher = () => {
           open={isDrawerOpen}
           onClose={handleDrawerClose}
           PaperProps={{
-            sx: { width: '40%' }, // Set the width here
+            sx: {
+              width: isSmallScreen ? "100%" : '40%',
+              borderRadius: isSmallScreen ? "0" : "10px 0 0 10px",
+              zIndex: 1000,
+            },
           }}
         >
-          <Box sx={{ padding: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Typography m={2} variant="h6"><b>Payment Voucher</b></Typography>
-            <CloseIcon sx={{ cursor: 'pointer' }} onClick={handleDrawerClose} />
+
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              padding: 3,
+              borderBottom: "1px solid #ccc",
+            }}
+          >
+
+            <Typography variant="h6">
+              <b>Payment Voucher</b>
+            </Typography>
+
+
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 2,
+              }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  cursor: "pointer",
+                  color: "primary.main",
+                }}
+              >
+                <MoreVertIcon sx={{ cursor: 'pointer', color: 'black' }} onClick={handleMenuOpen} />
+                <Menu
+                  anchorEl={anchorEl}
+                  open={Boolean(anchorEl)}
+                  onClose={handleMenuClose}
+                >
+                  <MenuItem>Preview Report</MenuItem>
+                  <MenuItem >Generate Report </MenuItem>
+                </Menu>
+              </Box>
+
+
+              <Box sx={{ cursor: "pointer" }}>
+                <CloseIcon onClick={handleDrawerClose} />
+              </Box>
+            </Box>
           </Box>
           <Divider />
+
           <Box>
+            <Box m={1} display={'flex'} alignItems={'center'} justifyContent={'flex-end'}>
+              <Box >
+                <LocalizationProvider dateAdapter={AdapterDateFns}>
+                  <Box  >
+                    <Typography > Date</Typography>
+                    <DatePicker
 
-            <Box display={'flex'} alignItems="center" gap={2}>
 
-              <Box flex={1} m={2}>
+                      format="dd/MM/yyyy"
+                      sx={{ width: "100%", }}
+                      renderInput={(params) => <TextField {...params} size="small" />}
+                    />
+                  </Box>
+                </LocalizationProvider>
+              </Box>
+            </Box>
+
+            <Box display={'flex'} alignItems={'center'} gap={2} m={1}>
+              <Box flex={1}>
+
+                <Box >
+                  <Typography>Dr Name of Creditor</Typography>
+                  <Autocomplete
+                    sx={{ mt: 2, mb: 2, backgroundColor: '#fff' }}
+                    size="small"
+                    // options={accountOptions}
+                    // value={name}
+                    // onChange={(event, newValue) => setName(newValue)}
+                    getOptionLabel={(option) => option.label}
+                    isClearable={true}
+                    renderInput={(params) => <TextField {...params} />}
+                  />
+                </Box>
+
+                <Box >
+                  <Typography>Cr Bank</Typography>
+                  <FormControl fullWidth size="small" margin="normal" >
+
+                    <Select  >
+                      <MenuItem value="MDCC Bank">MDCC Bank</MenuItem>
+                      <MenuItem value="Saraswat Bank">Saraswat Bank</MenuItem>
+                      <MenuItem value="Cash">Cash</MenuItem>
+
+                    </Select>
+                  </FormControl>
+                </Box>
+              </Box>
+
+              <Box flex={1}>
+
+                <Box>
+                  <Typography>Dr Amount Paid</Typography>
+                  <TextField
+                    type="number"
+                    // error={!!errors.crAmountReceived}
+                    // value={crAmountReceived}
+                    // onChange={(e) => setCrAmountReceived(e.target.value)}
+                    // helperText={errors.crAmountReceived}
+                    size="small"
+                    margin="normal"
+                    placeholder="Cr Amount Received"
+                    fullWidth
+                    InputProps={{
+                      inputProps: { style: { appearance: 'textfield' }, step: 'any' },
+                    }}
+                    sx={{
+                      '& input[type="number"]': {
+                        MozAppearance: 'textfield',
+                        WebkitAppearance: 'textfield',
+                      },
+                      '& input[type="number"]::-webkit-outer-spin-button, & input[type="number"]::-webkit-inner-spin-button': {
+                        WebkitAppearance: 'none',
+                        margin: 0,
+                      },
+                    }}
+                  />
+                </Box>
+
+                <Box mt={1}>
+                  <Typography>Cr Amount Paid</Typography>
+                  <TextField
+                    type="number"
+                    // error={!!errors.crAmountReceived}
+                    // value={crAmountReceived}
+                    // onChange={(e) => setCrAmountReceived(e.target.value)}
+                    // helperText={errors.crAmountReceived}
+                    size="small"
+                    margin="normal"
+                    placeholder="Cr Amount Received"
+                    fullWidth
+                    InputProps={{
+                      inputProps: { style: { appearance: 'textfield' }, step: 'any' },
+                    }}
+                    sx={{
+                      '& input[type="number"]': {
+                        MozAppearance: 'textfield',
+                        WebkitAppearance: 'textfield',
+                      },
+                      '& input[type="number"]::-webkit-outer-spin-button, & input[type="number"]::-webkit-inner-spin-button': {
+                        WebkitAppearance: 'none',
+                        margin: 0,
+                      },
+                    }}
+                  />
+                </Box>
+              </Box>
+            </Box>
+
+            <Box>
+              <Typography textAlign={'center'} variant='h6'>Bank Allocations</Typography>
+            </Box>
+
+            <Box display={'flex'} alignItems={'center'} gap={2} m={1} >
+              <Box flex={1}>
+                <Box >
+                  <Typography>Transaction Type</Typography>
+                  <FormControl fullWidth size="small" margin="normal">
+
+                    <Select >
+                      <MenuItem value="NEFT">NEFT</MenuItem>
+                      <MenuItem value="IMPS">IMPS</MenuItem>
+                      <MenuItem value="UPI">UPI</MenuItem>
+                      <MenuItem value="Cheque">Cheque</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Box>
+
+                <Box >
+                  <Typography>Inst.No</Typography>
+                  <FormControl fullWidth size="small" margin="normal"  >
+
+                    <Select >
+                      <MenuItem value="Cheque">Cheque</MenuItem>
+                      <MenuItem value="NoTxn">No./Txn</MenuItem>
+                      <MenuItem value="No">No.</MenuItem>
+
+                    </Select>
+                  </FormControl>
+                </Box>
+              </Box>
+
+              <Box flex={1}>
+                <Box>
+                  <Typography>Amount Paid</Typography>
+                  <TextField
+                    type="number"
+                    size="small"
+                    margin="normal"
+                    placeholder="Amount Paid"
+                    fullWidth
+                    InputProps={{
+                      inputProps: { style: { appearance: 'textfield' }, step: 'any' },
+                    }}
+                    sx={{
+                      '& input[type="number"]': {
+                        MozAppearance: 'textfield',
+                        WebkitAppearance: 'textfield',
+                      },
+                      '& input[type="number"]::-webkit-outer-spin-button, & input[type="number"]::-webkit-inner-spin-button': {
+                        WebkitAppearance: 'none',
+                        margin: 0,
+                      },
+                    }}
+                  />
+                </Box>
 
                 <Box >
                   <LocalizationProvider dateAdapter={AdapterDateFns}>
                     <Box  >
-                      <Typography > Date</Typography>
-                      <DatePicker
-
-                        format="dd/MM/yyyy"
-                        sx={{ width: "100%", }}
-                        renderInput={(params) => <TextField {...params} size="small" />}
-                      />
-                    </Box>
-                  </LocalizationProvider>
-                </Box>
-
-                <Box>
-                  <Typography>Amount Paid DR</Typography>
-                  <TextField size="small" margin="normal" placeholder='Amount Paid DR' fullWidth />
-                </Box>
-
-                <Box >
-                  <Typography>CrBank</Typography>
-                  <FormControl fullWidth size="small" margin="normal">
-
-                    <Select>
-                      <MenuItem value="MDCC Bank">MDCC Bank</MenuItem>
-                      <MenuItem value="Saraswat Bank">Saraswat Bank</MenuItem>
-                      <MenuItem value="Cash">Cash</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Box>
-
-                
-
-                <Box >
-                  <Typography>Transaction Type Payment</Typography>
-                  <FormControl fullWidth size="small" margin="normal">
-
-                    <Select>
-                      <MenuItem value="MDCC Bank">NEFT</MenuItem>
-                      <MenuItem value="Saraswat Bank">IMPS</MenuItem>
-                      <MenuItem value="Cash">UPI</MenuItem>
-                      <MenuItem value="Cash">Cheque</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Box>
-
-                <Box>
-                  <Typography>Cheque No./Txn No.</Typography>
-                  <TextField size="small" margin="normal" placeholder='Cheque No./Txn No.' fullWidth />
-                </Box>
-
-               
-              </Box>
-
-
-              <Box flex={1} m={2}>
-                <Box>
-                  <Typography>DR:Name of Creditor</Typography>
-                  <TextField size="small" margin="normal" placeholder='DR:Name of Creditor' fullWidth />
-                </Box>
-
-                <Box >
-                  <Typography>Bill No Payment</Typography>
-                  <FormControl fullWidth size="small" margin="normal">
-
-                    <Select>
-                      <MenuItem value="Bill1">Bill1</MenuItem>
-                      <MenuItem value="Bill2">Bill2</MenuItem>
-                      <MenuItem value="Bill3">Bill3</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Box>
-
-                <Box>
-                  <Typography>Amount Paid CR</Typography>
-                  <TextField size="small" margin="normal" placeholder='Amount Paid CR' fullWidth />
-                </Box>
-
-
-                <Box>
-                  <Typography>Inst.No</Typography>
-                  <TextField size="small" margin="normal" placeholder='Inst.No' fullWidth />
-                </Box>
-
-                <Box>
-                <LocalizationProvider dateAdapter={AdapterDateFns}>
-                    <Box  >
-                      <Typography > Inst.Date</Typography>
+                      <Typography >Inst. Date</Typography>
                       <DatePicker
 
                         format="dd/MM/yyyy"
@@ -266,16 +408,16 @@ const PaymentVoucher = () => {
                 </Box>
               </Box>
             </Box>
-
 
             <Box m={2}>
-              <Typography>Narration</Typography>
-              <TextField size="small" margin="normal" placeholder='Narration' fullWidth />
-            </Box>
-
-
+            <Typography>Narration:</Typography>
+            <Textarea minRows={3} placeholder='Narration' fullWidth />
+          </Box>
 
           </Box>
+
+
+
 
           <Box display={'flex'} alignItems={'center'} justifyContent={'center'} gap={2} m={1}>
             <Box>
