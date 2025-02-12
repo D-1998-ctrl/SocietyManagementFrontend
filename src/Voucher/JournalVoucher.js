@@ -10,6 +10,8 @@ import JournalVoucherTable from './JournalVoucherTable.json'
 import { useTheme } from "@mui/material/styles";
 import Textarea from '@mui/joy/Textarea';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+// import DatePicker from "react-datepicker";
+// import "react-datepicker/dist/react-datepicker.css";
 
 const JournalVoucher = () => {
   const theme = useTheme();
@@ -227,18 +229,27 @@ const JournalVoucher = () => {
           </Box>
           <Divider />
           <Box>
-            {/* <Box m={2}>
-              <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <Box  >
-                  <Typography > Date</Typography>
-                  <DatePicker
 
-                    format="dd/MM/yyyy"
-                    sx={{ width: "100%", }}
-                    renderInput={(params) => <TextField {...params} size="small" />}
-                  />
-                </Box>
-                {(!!formErrors.Date) && (
+
+            <Box display={'flex'} alignItems="center" gap={2} m={2}>
+              <Box flex={1}>
+                <Typography>Voucher number</Typography>
+                <TextField type='number' size="small" margin="normal" onChange={(e) => handlevalidationChange("DebitAmount", e.target.value)} value={formValues.DebitAmount} error={!!formErrors.DebitAmount} placeholder='Debit Amount' fullWidth
+
+                  InputProps={{
+                    inputProps: { style: { MozAppearance: "textfield" }, min: 0 },
+                    sx: {
+                      "input[type=number]": {
+                        "-moz-appearance": "textfield",
+                      },
+                      "& input[type=number]::-webkit-outer-spin-button, & input[type=number]::-webkit-inner-spin-button": {
+                        "-webkit-appearance": "none",
+                        margin: 0,
+                      },
+                    },
+                  }} />
+
+                {(!!formErrors.DebitAmount) && (
                   <Alert severity="error" sx={{
                     width: '92%',
                     p: '2',
@@ -256,64 +267,67 @@ const JournalVoucher = () => {
                       mr: '8px',
                     },
                   }}>
-                    {formErrors.Date}
+                    {formErrors.DebitAmount}
                   </Alert>
                 )}
-              </LocalizationProvider>
-            </Box> */}
-            <Box m={2}>
-              <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <Box>
-                  <Typography>Date</Typography>
-                  <DatePicker
-                    format="dd/MM/yyyy"
+              </Box>
 
-                    // value={selectedDate}
-                    // onChange={(newValue) => setSelectedDate(newValue)}
-                    renderInput={() => (
-                      <Typography sx={{ width: "100%", p: 1, border: "1px solid #ccc", borderRadius: "4px" }}>
-                        {/* {selectedDate ? format(selectedDate, "dd/MM/yyyy") : "Select a date"} */}
-                      </Typography>
+
+              <Box display="flex" alignItems="center" gap={2} m={2}>
+                <Box flex={1}>
+                  <LocalizationProvider dateAdapter={AdapterDateFns}>
+                    <Box>
+                      <Typography>Date</Typography>
+                      <DatePicker
+                        format="dd/MM/yyyy"
+                        slotProps={{
+                          textField: {
+                            sx: {
+                              mt: 2,
+                              mb: 2,
+                              backgroundColor: "#fff",
+                              height: 41,
+                              minHeight: 41,
+                              "& .MuiInputBase-root": { height: 41 },
+                            },
+                          },
+                        }}
+                      />
+                    </Box>
+                    {!!formErrors.Date && (
+                      <Alert
+                        severity="error"
+                        sx={{
+                          width: "92%",
+                          p: "2",
+                          pl: "4%",
+                          height: "23px",
+                          borderRadius: "8px",
+                          borderTopLeftRadius: "0",
+                          borderTopRightRadius: "0",
+                          fontSize: "12px",
+                          display: "flex",
+                          backgroundColor: "#ffdddd",
+                          color: "#a00",
+                          alignItems: "center",
+                          "& .MuiAlert-icon": { fontSize: "16px", mr: "8px" },
+                        }}
+                      >
+                        {formErrors.Date}
+                      </Alert>
                     )}
-                  />
+                  </LocalizationProvider>
                 </Box>
-                {!!formErrors.Date && (
-                  <Alert
-                    severity="error"
-                    sx={{
-                      width: "92%",
-                      p: 2,
-                      pl: "4%",
-                      height: "23px",
-                      borderRadius: "8px",
-                      borderTopLeftRadius: "0",
-                      borderTopRightRadius: "0",
-                      fontSize: "12px",
-                      display: "flex",
-                      backgroundColor: "#ffdddd",
-                      color: "#a00",
-                      alignItems: "center",
-                      "& .MuiAlert-icon": {
-                        fontSize: "16px",
-                        mr: "8px",
-                      },
-                    }}
-                  >
-                    {formErrors.Date}
-                  </Alert>
-                )}
-              </LocalizationProvider>
+              </Box>
+
+
+
             </Box>
 
 
 
-            <Box display={'flex'} alignItems="center" gap={2}>
-              <Box flex={1} m={2}>
-                {/* <Box>
-                  <Typography>Debit Ledger</Typography>
-                  <TextField size="small" margin="normal" placeholder='Debit Ledger' fullWidth />
-                </Box> */}
-
+            <Box display={'flex'} alignItems="center" gap={2} m={2}>
+              <Box flex={1} >
                 <Box>
                   <Typography>Debit Ledger</Typography>
                   <Autocomplete
@@ -421,7 +435,7 @@ const JournalVoucher = () => {
               </Box>
 
 
-              <Box flex={1} m={2}>
+              <Box flex={1} m={2} >
                 <Box>
                   <Typography>Debit Amount</Typography>
                   <TextField type='number' size="small" margin="normal" onChange={(e) => handlevalidationChange("DebitAmount", e.target.value)} value={formValues.DebitAmount} error={!!formErrors.DebitAmount} placeholder='Debit Amount' fullWidth
@@ -505,6 +519,13 @@ const JournalVoucher = () => {
 
 
               </Box>
+            </Box>
+
+            <Box display="flex" alignItems="center" gap={2} m={2}>
+
+
+
+
             </Box>
 
 
