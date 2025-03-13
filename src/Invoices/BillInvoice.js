@@ -1,56 +1,129 @@
-
-
-
-
 import React, { useState, useEffect, useMemo } from 'react';
-import { Alert, Autocomplete, useMediaQuery, Menu, Box, Button, Typography, TextField, Drawer, Divider, FormControl, Select, MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
-import { MaterialReactTable, } from 'material-react-table';
+import {
+  Alert,
+  Autocomplete,
+  useMediaQuery,
+  Box,
+  Button,
+  Typography,
+  TextField,
+  Drawer,
+  Divider,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+} from '@mui/material';
+import { MaterialReactTable } from 'material-react-table';
 import CloseIcon from '@mui/icons-material/Close';
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import ContraVoucherTable from '../Voucher/ContraVoucherTable.json'
-import { toWords } from "number-to-words";
-import { jsPDF } from "jspdf";
-import "jspdf-autotable";
-import PaymentVoucherTable from '../Voucher/PaymentVoucherTable.json'
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { toWords } from 'number-to-words';
 import Textarea from '@mui/joy/Textarea';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { useTheme } from "@mui/material/styles";
+import { useTheme } from '@mui/material/styles';
+import { format, parseISO } from 'date-fns';
 
 const BillInvoice = () => {
   const theme = useTheme();
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
-  // for drawer
+  // State for drawer
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const handleDrawerOpen = () => {
-    setIsDrawerOpen(true);
-  };
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState(null);
 
-  const handleDrawerClose = () => {
-    setIsDrawerOpen(false);
-  };
+  // State for form fields
+  const [formValues, setFormValues] = useState({
+    memberId: '',
+    invoiceNumber: '',
+    invoiceDate: null,
+    period: '',
+    dueDate: null,
+    narration: '',
+    amtInWords: '',
+  });
 
-  //
-  const [memberName, setMemberName] = useState('');
-  const [billNumber, setBillNumber] = useState('');
-  const [billDate, setBillDate] = useState('');
-  const [period, setPeriod] = useState('');
-  const [dueDate, setDueDate] = useState('');
   const [items, setItems] = useState([{ description: '', amount: '' }]);
-  const [subTotal, setSubTotal] = useState(0);
-  const [amountInWords, setAmountInWords] = useState('');
-  const [narration, setNarration] = useState('');
-  const [email, setEmail] = useState('');
-  const [whatsapp, setWhatsapp] = useState('');
-  const [showInvoiceForm, setShowInvoiceForm] = useState(false);
+  const [data, setData] = useState([]);
+  const [memberOptions, setMemberOptions] = useState([
+    { id: 1, name: 'John Doe' },
+    { id: 2, name: 'Jane Smith' },
+    { id: 3, name: 'Alice Johnson' },
+    { id: 4, name: 'Bob Brown' },
+  ]);
 
-  // Recalculate SubTotal whenever items change
+  // Fetch data from API
   useEffect(() => {
-    const newSubTotal = items.reduce((total, item) => total + (parseFloat(item.amount) || 0), 0);
-    setSubTotal(newSubTotal);
-  }, [items]);
+    fetchData();
+    fetchMemberOptions();
+  }, []);
+
+  // Fetch InvoiceHeader data
+  const fetchData = async () => {
+    try {
+      const response = await fetch('http://localhost:8001/InvoiceHeader');
+      const result = await response.json();
+      setData(result);
+    } catch (error) {
+      console.error('Error fetching InvoiceHeader data:', error);
+    }
+  };
+
+  // Fetch DR Member Name options
+  const fetchMemberOptions = async () => {
+    try {
+      const response = await fetch('/members.json'); // Path to your JSON file
+      const result = await response.json();
+      setMemberOptions(result);
+    } catch (error) {
+      console.error('Error fetching member options:', error);
+    }
+  };
+
+  // Fetch the last invoice number
+  const fetchLastInvoiceNumber = async () => {
+    try {
+      const response = await fetch('http://localhost:8001/InvoiceHeader');
+      const result = await response.json();
+      if (result.length > 0) {
+        const lastInvoiceNumber = Math.max(...result.map((item) => parseInt(item.invoiceNumber, 10)));
+        return lastInvoiceNumber + 1;
+      }
+      return 1; // Default to 1 if no invoices exist
+    } catch (error) {
+      console.error('Error fetching last invoice number:', error);
+      return 1;
+    }
+  };
+
+  // Handle row click for editing
+  const handleRowClick = async (row) => {
+    try {
+      const response = await fetch(`http://localhost:8001/InvoiceHeader/${row.id}`);
+      const itemsData = await response.json();
+
+      setEditData(row);
+      setIsEditing(true);
+      setIsDrawerOpen(true);
+      setFormValues({
+        memberId: row.memberId || '',
+        invoiceNumber: row.invoiceNumber || '',
+        invoiceDate: row.invoiceDate ? parseISO(row.invoiceDate) : null,
+        period: row.period || '',
+        dueDate: row.dueDate ? parseISO(row.dueDate) : null,
+        narration: row.narration || '',
+        amtInWords: row.amtInWords || '',
+      });
+      setItems(itemsData || [{ description: '', amount: '' }]);
+    } catch (error) {
+      console.error('Error fetching InvoiceDetail data:', error);
+    }
+  };
 
   // Handle form input changes
   const handleInputChange = (e, index) => {
@@ -58,6 +131,10 @@ const BillInvoice = () => {
     const updatedItems = [...items];
     updatedItems[index][name] = value;
     setItems(updatedItems);
+
+    // Automatically update amount in words
+    const totalAmount = updatedItems.reduce((total, item) => total + parseFloat(item.amount || 0), 0);
+    setFormValues((prev) => ({ ...prev, amtInWords: toWords(totalAmount) }));
   };
 
   // Add item to the list
@@ -69,499 +146,241 @@ const BillInvoice = () => {
   const handleRemoveItem = (index) => {
     const updatedItems = items.filter((_, i) => i !== index);
     setItems(updatedItems);
+
+    // Update amount in words after removal
+    const totalAmount = updatedItems.reduce((total, item) => total + parseFloat(item.amount || 0), 0);
+    setFormValues((prev) => ({ ...prev, amtInWords: toWords(totalAmount) }));
   };
 
-  // Convert SubTotal to Words
-  const subTotalInWords = subTotal > 0 ? toWords(subTotal) : "0";
-  //
-  const handleGeneratePdf = () => {
-    const doc = new jsPDF();
-
-    // Add Title
-    doc.setFontSize(16);
-    doc.text("Society Bill", 14, 20);
-
-    // Table data
-    const tableData = items.map((item, index) => [
-      index + 1,
-      item.description || "-",
-      item.amount || "0",
-    ]);
-
-    // AutoTable
-    doc.autoTable({
-      startY: 30,
-      head: [["SR NO.", "Description", "Amount"]],
-      body: tableData,
-    });
-
-    // Subtotal and Amount in Words
-
-
-    const subtotal = items.reduce((total, item) => total + parseFloat(item.amount || 0), 0);
-    const y = doc.lastAutoTable.finalY + 10;
-
-    doc.setFontSize(12);
-    doc.text("SubTotal: ", 14, y);
-    doc.setFont("helvetica", "bold");
-    doc.text(`${subtotal}`, 40, y);
-
-    const amountInWordsY = y + 10;
-    doc.setFont("helvetica", "normal");
-    doc.text("Amount in Words: ", 14, amountInWordsY);
-    doc.setFont("helvetica", "bold");
-    doc.text(`${subTotalInWords}`, 60, amountInWordsY);
-
-    // Save PDF
-    doc.save("invoice.pdf");
-  };
-
-
-
-
-
-
-  const columns = useMemo(() => {
-    return [
-      {
-        accessorKey: 'srNo',
-        header: 'Sr No',
-        size: 100,
-      },
-      {
-        accessorKey: 'Date',
-        header: 'Date',
-        size: 150,
-      },
-      {
-        accessorKey: 'NameofCreditor',
-        header: 'Name of Creditor/Expense Head',
-        size: 150,
-      },
-      {
-        accessorKey: 'AmountPaidDr',
-        header: 'Amount Paid Dr',
-        size: 150,
-      },
-
-      {
-        accessorKey: 'PreviousO/SBills',
-        header: 'Previous O/S Bills Raised',
-        size: 150,
-      },
-
-      {
-        accessorKey: 'Bank',
-        header: 'Bank',
-        size: 150,
-      },
-
-      {
-        accessorKey: 'DrName',
-        header: 'DrName',
-        size: 150,
-      },
-
-      {
-        accessorKey: 'AmountPaidCr',
-        header: 'Amount Paid Cr',
-        size: 150,
-      },
-
-      {
-        accessorKey: 'TransactionType',
-        header: 'Transaction Type',
-        size: 150,
-      },
-
-      {
-        accessorKey: 'InstNo',
-        header: 'Inst No',
-        size: 150,
-      },
-
-      {
-        accessorKey: 'ChequeNo',
-        header: 'Cheque No/Txn No',
-        size: 150,
-      },
-
-      {
-        accessorKey: 'InstDate',
-        header: 'Inst.Date',
-        size: 150,
-      },
-
-
-      {
-        accessorKey: 'Narration',
-        header: 'Narration',
-        size: 150,
-      },
-      {
-        id: 'actions',
-        header: 'Actions',
-        size: 150,
-
-      },
-    ];
-  }, []);
-
-
-  const [anchorEl, setAnchorEl] = useState(null);
-
-  const handleMenuOpen = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
-
-
-  //validation
-  const [formValues, setFormValues] = useState({
-    DRMemberName: "",
-    BillNumber: "",
-    BillDate: "",
-    Period: "",
-    DueDate: "",
-  });
-
-  const [formErrors, setFormErrors] = useState({});
-
-  const handlevalidationChange = (field, value) => {
+  // Handle form field changes
+  const handleFormChange = (field, value) => {
     setFormValues((prev) => ({ ...prev, [field]: value }));
-    setFormErrors((prev) => ({ ...prev, [field]: "" })); // Clear error on change
   };
 
-  const validate = () => {
-    const errors = {};
+  // Handle save changes
+  const handleSave = async () => {
 
-    if (!formValues.DRMemberName) errors.DRMemberName = "DR Membe rName is required.";
-    if (!formValues.BillNumber) errors.BillNumber = "Bill Number is required.";
-    if (!formValues.BillDate) errors.BillDate = "Bill Date is required.";
-    if (!formValues.Period) errors.Period = "Period is required.";
-    if (!formValues.DueDate) errors.DueDate = "Due Date is required.";
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0; // Return true if no errors
-  };
+console.log(editData.id)
 
-  const handleSave = () => {
-    if (validate()) {
-      // Perform save action
-      console.log("Form submitted:", formValues);
-      handleDrawerClose();
+    const headerPayload = {
+      ...formValues,
+      invoiceDate: formValues.invoiceDate ? format(formValues.invoiceDate, 'yyyy-MM-dd') : '',
+      dueDate: formValues.dueDate ? format(formValues.dueDate, 'yyyy-MM-dd') : '',
+    };
+
+    try {
+      let headerResponse;
+      if (isEditing) {
+        // Update existing record
+        headerResponse = await fetch(`http://localhost:8001/InvoiceHeader/${editData.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(headerPayload),
+        });
+      } else {
+        headerResponse = await fetch('http://localhost:8001/InvoiceHeader', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(headerPayload),
+        });
+      }
+
+      const headerData = await headerResponse.json();
+      const headerId = headerData.id;
+
+      // Save InvoiceDetail items
+      await fetch('http://localhost:8001/InvoiceDetail', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(
+          items.map((item) => ({
+            ...item,
+            headerId,
+          }))
+        ),
+      });
+
+      fetchData();
+      setIsDrawerOpen(false);
+      setIsEditing(false);
+      setEditData(null);
+    } catch (error) {
+      console.error('Error saving data:', error);
     }
   };
 
+  // Handle delete
+  const handleDelete = async () => {
+    try {
+      await fetch(`http://localhost:8001/InvoiceHeader/${editData.id}`, {
+        method: 'DELETE',
+      });
+      fetchData();
+      setIsDrawerOpen(false);
+      setIsEditing(false);
+      setEditData(null);
+    } catch (error) {
+      console.error('Error deleting data:', error);
+    }
+  };
+
+  // Handle cancel
+  const handleCancel = () => {
+    setIsDrawerOpen(false);
+    setIsEditing(false);
+    setEditData(null);
+  };
+
+  // Handle drawer open
+  const handleDrawerOpen = async () => {
+    const nextInvoiceNumber = await fetchLastInvoiceNumber();
+    setFormValues((prev) => ({
+      ...prev,
+      invoiceNumber: nextInvoiceNumber.toString(),
+      invoiceDate: null,
+      dueDate: null,
+    }));
+    setIsDrawerOpen(true);
+    setIsEditing(false);
+    setEditData(null);
+  };
+
+  // Columns for the table
+  const columns = useMemo(
+    () => [
+      { accessorKey: 'id', header: 'ID', size: 100 },
+      { accessorKey: 'memberId', header: 'DR Member Name', size: 150 },
+      { accessorKey: 'invoiceNumber', header: 'Bill Number', size: 150 },
+      { accessorKey: 'invoiceDate', header: 'Bill Date', size: 150 },
+      { accessorKey: 'period', header: 'Period', size: 150 },
+      { accessorKey: 'dueDate', header: 'Due Date', size: 150 },
+    ],
+    []
+  );
 
   return (
     <Box>
-      <Box >
-
+      <Box>
         <Box sx={{ display: 'flex', gap: 3 }}>
-          <Button variant="contained" onClick={handleDrawerOpen}> create Bill Invoice</Button>
-
+          <Button variant="contained" onClick={handleDrawerOpen}>
+            Create Bill Invoice
+          </Button>
         </Box>
-
 
         <Box mt={4}>
           <MaterialReactTable
             columns={columns}
-            data={PaymentVoucherTable}
+            data={data}
             enableColumnOrdering
             enableColumnResizing
+            muiTableBodyRowProps={({ row }) => ({
+              onClick: () => handleRowClick(row.original),
+              sx: { cursor: 'pointer' },
+            })}
           />
         </Box>
 
-        {/* drawer for new mewmber */}
         <Drawer
           anchor="right"
           open={isDrawerOpen}
-          onClose={handleDrawerClose}
+          onClose={handleCancel}
           PaperProps={{
             sx: {
-              width: isSmallScreen ? "100%" : '60%',
-              borderRadius: isSmallScreen ? "0" : "10px 0 0 10px",
+              width: isSmallScreen ? '100%' : '60%',
+              borderRadius: isSmallScreen ? '0' : '10px 0 0 10px',
               zIndex: 1000,
             },
           }}
+          key={isDrawerOpen} // Force re-render on drawer open
         >
-
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              padding: 3,
-              borderBottom: "1px solid #ccc",
-            }}
-          >
-
-            <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-              Create Bill Invoice
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 3, borderBottom: '1px solid #ccc' }}>
+            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+              {isEditing ? 'Edit Bill Invoice' : 'Create Bill Invoice'}
             </Typography>
-
-
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 2,
-              }}
-            >
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  cursor: "pointer",
-                  color: "primary.main",
-                }}
-              >
-                <MoreVertIcon sx={{ cursor: 'pointer', color: 'black' }} onClick={handleMenuOpen} />
-                <Menu
-                  anchorEl={anchorEl}
-                  open={Boolean(anchorEl)}
-                  onClose={handleMenuClose}
-                >
-                  <MenuItem>Preview</MenuItem>
-                  <MenuItem onClick={handleGeneratePdf}>Generate Report </MenuItem>
-                </Menu>
-              </Box>
-
-
-              <Box sx={{ cursor: "pointer" }}>
-                <CloseIcon  onClick={handleDrawerClose}/>
-              </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <MoreVertIcon sx={{ cursor: 'pointer', color: 'black' }} />
+              <CloseIcon onClick={handleCancel} sx={{ cursor: 'pointer' }} />
             </Box>
           </Box>
 
-
           <Divider />
           <Box>
-
-
-
             <Box m={2}>
               <Typography>DR Member Name</Typography>
               <Autocomplete
-                // options={options}
+                options={memberOptions}
                 sx={{ mt: 2, mb: 2, backgroundColor: '#fff' }}
-                size='small'
-                // value={selecteduser}
-                // onChange={handleuserChange}
-                onChange={(e) => handlevalidationChange("DRMemberName", e.target.value)}
-                value={formValues.DRMemberName}
-                error={!!formErrors.DRMemberName}
-
-                isOptionEqualToValue={(option, value) => option.value === value.value}
-                getOptionLabel={(option) => option.label || ""}
-                renderInput={(params) => (
-                  <>
-                    <TextField
-                      {...params}
-                      // error={!!selectedUserError}
-
-                      placeholder="Member Name"
-                    />
-
-                  </>
-                )}
+                size="small"
+                onChange={(e, value) => handleFormChange('memberId', value ? value.id : '')}
+                value={memberOptions.find((option) => option.id === formValues.memberId) || null}
+                getOptionLabel={(option) => option.name || ''}
+                renderInput={(params) => <TextField {...params} placeholder="Member Name" />}
                 isClearable={true}
               />
-              {(!!formErrors.DRMemberName) && (
-                <Alert severity="error" sx={{
-                  width: '92%',
-                  p: '2',
-                  pl: '4%', height: '23px',
-                  borderRadius: '8px',
-                  borderTopLeftRadius: '0',
-                  borderTopRightRadius: '0',
-                  fontSize: '12px',
-                  display: 'flex',
-                  backgroundColor: "#ffdddd",
-                  color: "#a00",
-                  alignItems: 'center',
-                  '& .MuiAlert-icon': {
-                    fontSize: '16px',
-                    mr: '8px',
-                  },
-                }}>
-                  {formErrors.DRMemberName}
-                </Alert>
-              )}
             </Box>
 
-            <Box display={'flex'} alignItems="center" gap={2} >
+            <Box display={'flex'} alignItems="center" gap={2}>
               <Box flex={1} m={2}>
                 <Box>
                   <Typography>Bill Number</Typography>
-                  <TextField type='number' size="small" margin="normal" placeholder='Bill Number:' fullWidth error={!!formErrors.BillNumber} value={formValues.BillNumber} onChange={(e) => handlevalidationChange("BillNumber", e.target.value)}
-                    InputProps={{
-                      inputProps: { style: { appearance: 'textfield' }, step: 'any' },
-                    }}
-                    sx={{
-                      '& input[type=number]': {
-                        MozAppearance: 'textfield',
-                        WebkitAppearance: 'textfield',
-                      },
-                      '& input[type=number]::-webkit-outer-spin-button, & input[type=number]::-webkit-inner-spin-button': {
-                        WebkitAppearance: 'none',
-                        margin: 0,
-                      },
-                    }} />
-                  {(!!formErrors.BillNumber) && (
-                    <Alert severity="error" sx={{
-                      width: '92%',
-                      p: '2',
-                      pl: '4%', height: '23px',
-                      borderRadius: '8px',
-                      borderTopLeftRadius: '0',
-                      borderTopRightRadius: '0',
-                      fontSize: '12px',
-                      display: 'flex',
-                      backgroundColor: "#ffdddd",
-                      color: "#a00",
-                      alignItems: 'center',
-                      '& .MuiAlert-icon': {
-                        fontSize: '16px',
-                        mr: '8px',
-                      },
-                    }}>
-                      {formErrors.BillNumber}
-                    </Alert>
-                  )}
+                  <TextField
+                    type="number"
+                    size="small"
+                    margin="normal"
+                    placeholder="Bill Number"
+                    fullWidth
+                    value={formValues.invoiceNumber}
+                    onChange={(e) => handleFormChange('invoiceNumber', e.target.value)}
+                  />
                 </Box>
-
 
                 <Box>
                   <Typography>Period</Typography>
-                  <TextField size="small" type='number' margin="normal" onChange={(e) => handlevalidationChange("Period", e.target.value)} value={formValues.Period} error={!!formErrors.Period} placeholder='Period' fullWidth
-                    InputProps={{
-                      inputProps: { style: { appearance: 'textfield' }, step: 'any' },
-                    }}
-                    sx={{
-                      '& input[type=number]': {
-                        MozAppearance: 'textfield',
-                        WebkitAppearance: 'textfield',
-                      },
-                      '& input[type=number]::-webkit-outer-spin-button, & input[type=number]::-webkit-inner-spin-button': {
-                        WebkitAppearance: 'none',
-                        margin: 0,
-                      },
-                    }} />
-
-                  {(!!formErrors.Period) && (
-                    <Alert severity="error" sx={{
-                      width: '92%',
-                      p: '2',
-                      pl: '4%', height: '23px',
-                      borderRadius: '8px',
-                      borderTopLeftRadius: '0',
-                      borderTopRightRadius: '0',
-                      fontSize: '12px',
-                      display: 'flex',
-                      backgroundColor: "#ffdddd",
-                      color: "#a00",
-                      alignItems: 'center',
-                      '& .MuiAlert-icon': {
-                        fontSize: '16px',
-                        mr: '8px',
-                      },
-                    }}>
-                      {formErrors.Period}
-                    </Alert>
-                  )}
+                  <TextField
+                    size="small"
+                    type="number"
+                    margin="normal"
+                    onChange={(e) => handleFormChange('period', e.target.value)}
+                    value={formValues.period}
+                    placeholder="Period"
+                    fullWidth
+                  />
                 </Box>
-                {/* <Box>
-                  <LocalizationProvider dateAdapter={AdapterDateFns}>
-                    <Box  >
-                      <Typography > Period:</Typography>
-                      <DatePicker
-
-                        format="dd/MM/yyyy"
-                        sx={{ width: "100%", }}
-                        renderInput={(params) => <TextField {...params} size="small" />}
-                      />
-                    </Box>
-                  </LocalizationProvider>
-                </Box> */}
-
               </Box>
-
 
               <Box flex={1} m={2}>
                 <Box>
                   <LocalizationProvider dateAdapter={AdapterDateFns}>
-                    <Box  >
-                      <Typography > Bill Date</Typography>
+                    <Box>
+                      <Typography>Bill Date</Typography>
                       <DatePicker
-                        // onChange={(e) => handlevalidationChange("DueDate", e.target.value)}
-                        // value={formValues.DueDate}
-                        // error={!!formErrors.DueDate}
                         format="dd/MM/yyyy"
-                        sx={{ width: "100%", }}
+                        sx={{ width: '100%' }}
+                        value={formValues.invoiceDate}
+                        onChange={(newValue) => handleFormChange('invoiceDate', newValue)}
                         renderInput={(params) => <TextField {...params} size="small" />}
                       />
-                      {(!!formErrors.BillDate) && (
-                        <Alert severity="error" sx={{
-                          width: '92%',
-                          p: '2',
-                          pl: '4%', height: '23px',
-                          borderRadius: '8px',
-                          borderTopLeftRadius: '0',
-                          borderTopRightRadius: '0',
-                          fontSize: '12px',
-                          display: 'flex',
-                          backgroundColor: "#ffdddd",
-                          color: "#a00",
-                          alignItems: 'center',
-                          '& .MuiAlert-icon': {
-                            fontSize: '16px',
-                            mr: '8px',
-                          },
-                        }}>
-                          {formErrors.BillDate}
-                        </Alert>
-                      )}
                     </Box>
                   </LocalizationProvider>
                 </Box>
 
-
-
                 <Box>
                   <LocalizationProvider dateAdapter={AdapterDateFns}>
-                    <Box  >
-                      <Typography > Due Date</Typography>
+                    <Box>
+                      <Typography>Due Date</Typography>
                       <DatePicker
-
                         format="dd/MM/yyyy"
-                        sx={{ width: "100%", }}
+                        sx={{ width: '100%' }}
+                        value={formValues.dueDate}
+                        onChange={(newValue) => handleFormChange('dueDate', newValue)}
                         renderInput={(params) => <TextField {...params} size="small" />}
                       />
-                      {(!!formErrors.DueDate) && (
-                        <Alert severity="error" sx={{
-                          width: '92%',
-                          p: '2',
-                          pl: '4%', height: '23px',
-                          borderRadius: '8px',
-                          borderTopLeftRadius: '0',
-                          borderTopRightRadius: '0',
-                          fontSize: '12px',
-                          display: 'flex',
-                          backgroundColor: "#ffdddd",
-                          color: "#a00",
-                          alignItems: 'center',
-                          '& .MuiAlert-icon': {
-                            fontSize: '16px',
-                            mr: '8px',
-                          },
-                        }}>
-                          {formErrors.DueDate}
-                        </Alert>
-                      )}
                     </Box>
                   </LocalizationProvider>
                 </Box>
@@ -569,7 +388,6 @@ const BillInvoice = () => {
             </Box>
 
             <Box m={2}>
-
               <TableContainer component={Paper}>
                 <Table>
                   <TableHead>
@@ -583,41 +401,25 @@ const BillInvoice = () => {
                   <TableBody>
                     {items.map((item, index) => (
                       <TableRow key={index}>
-                        <TableCell>{index + 1}</TableCell> {/* Display Serial Number */}
+                        <TableCell>{index + 1}</TableCell>
                         <TableCell>
                           <TextField
-                            size='small'
+                            size="small"
                             type="text"
-                            name="Particulars" nvoice Template
-
-                            placeholder=" Particulars"
+                            name="description"
+                            placeholder="Particulars"
                             value={item.description}
                             onChange={(e) => handleInputChange(e, index)}
-
                           />
                         </TableCell>
                         <TableCell>
                           <TextField
-                            size='small'
+                            size="small"
                             type="number"
                             name="amount"
                             placeholder="Amount"
                             value={item.amount}
                             onChange={(e) => handleInputChange(e, index)}
-                            InputProps={{
-                              inputProps: { style: { appearance: 'textfield' }, step: 'any' },
-                            }}
-                            sx={{
-                              '& input[type=number]': {
-                                MozAppearance: 'textfield',
-                                WebkitAppearance: 'textfield',
-                              },
-                              '& input[type=number]::-webkit-outer-spin-button, & input[type=number]::-webkit-inner-spin-button': {
-                                WebkitAppearance: 'none',
-                                margin: 0,
-                              },
-                            }}
-
                           />
                         </TableCell>
                         <TableCell>
@@ -628,17 +430,12 @@ const BillInvoice = () => {
                           )}
                         </TableCell>
                       </TableRow>
-
-
-
-
                     ))}
-
-                    <TableRow >
-                      <TableCell colSpan={2} align="right" sx={{ fontWeight: "bold", }}>
+                    <TableRow>
+                      <TableCell colSpan={2} align="right" sx={{ fontWeight: 'bold' }}>
                         Sub-Total
                       </TableCell>
-                      <TableCell sx={{ fontWeight: "bold" }}>
+                      <TableCell sx={{ fontWeight: 'bold' }}>
                         {items.reduce((total, item) => total + parseFloat(item.amount || 0), 0)}
                       </TableCell>
                       <TableCell></TableCell>
@@ -646,71 +443,47 @@ const BillInvoice = () => {
                   </TableBody>
                 </Table>
               </TableContainer>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleAddItem}
-                sx={{ mt: 2 }}  // mt: 2 is equivalent to marginTop: 16px
-              >
+              <Button variant="contained" color="primary" onClick={handleAddItem} sx={{ mt: 2 }}>
                 Add Item
               </Button>
-
             </Box>
 
-            {/* <Box mt={2} m={2}>
-              <Typography sx={{ fontWeight: 'bold' }}>SubTotal</Typography>
-              <TextField
-                size="small"
-                type="number"
-                name="subTotal"
-                value={items.reduce((total, item) => total + parseFloat(item.amount || 0), 0)} // Calculate SubTotal
-
-                fullWidth
-              />
-            </Box> */}
-
             <Box mt={2} m={2}>
-              <Typography sx={{ fontWeight: "bold" }}>Amount in Words:</Typography>
+              <Typography sx={{ fontWeight: 'bold' }}>Amount in Words:</Typography>
               <TextField
                 size="small"
                 type="text"
-                name="subTotalInWords"
-                value={subTotalInWords}
+                name="amtInWords"
+                value={formValues.amtInWords}
                 fullWidth
-                InputProps={{
-                  readOnly: true,
-                }}
+                onChange={(e) => handleFormChange('amtInWords', e.target.value)}
               />
             </Box>
 
-
             <Box m={2}>
               <Typography>Narration:</Typography>
-              <Textarea minRows={3} placeholder='Narration' fullWidth />
+              <Textarea
+                minRows={3}
+                value={formValues.narration}
+                onChange={(e) => handleFormChange('narration', e.target.value)}
+                placeholder="Narration"
+                fullWidth
+              />
             </Box>
-
-            {/* <Box m={2}>
-              <Typography>Email Address:</Typography>
-              <TextField size="small" margin="normal" placeholder='Email Address' fullWidth />
-            </Box> */}
-
-
-
-
           </Box>
 
           <Box display={'flex'} alignItems={'center'} justifyContent={'center'} gap={2} m={1}>
-            {/* <Box>
-              <Button onClick={handleGeneratePdf} variant='contained'>Generate Pdf </Button>
-            </Box> */}
-
-            <Box>
-              <Button onClick={handleSave} variant='contained'>Save</Button>
-            </Box>
-
-            <Box>
-              <Button onClick={handleDrawerClose} variant='outlined'>Cancel </Button>
-            </Box>
+            {isEditing && (
+              <Button onClick={handleDelete} variant="contained" color="error">
+                Delete
+              </Button>
+            )}
+            <Button onClick={handleSave} variant="contained">
+              Save
+            </Button>
+            <Button onClick={handleCancel} variant="outlined">
+              Cancel
+            </Button>
           </Box>
         </Drawer>
       </Box>
@@ -719,6 +492,3 @@ const BillInvoice = () => {
 };
 
 export default BillInvoice;
-
-
-

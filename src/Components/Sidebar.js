@@ -72,7 +72,7 @@ function Sidebar() {
                 </Typography>
                 <Chip
                   label="A340"
-                  sx={{ backgroundColor: "#25D366", color: "#fff",height:'25px' }}
+                  sx={{ backgroundColor: "#25D366", color: "#fff",height:'20px' }}
                 />
               </Box>
 

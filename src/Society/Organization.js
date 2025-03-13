@@ -1,17 +1,27 @@
-import React, { useMemo, useState } from 'react';
-import { Box, Alert, useMediaQuery, Button, Typography, TextField, Drawer, Divider, FormControl, Select, MenuItem, InputLabel, Checkbox } from '@mui/material';
-import { MaterialReactTable, } from 'material-react-table';
-import CloseIcon from '@mui/icons-material/Close';
+import React, { useState, useEffect } from "react";
+import {
+  Box,
+  Alert,
+  Button,
+  Typography,
+  TextField,
+  Divider,
+  FormControl,
+  Select,
+  MenuItem,
+  Grid,
+  CircularProgress,
+  Drawer,
+  IconButton,
+  InputLabel,
+} from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import { useTheme } from "@mui/material/styles";
+import CloseIcon from "@mui/icons-material/Close";
+import axios from "axios";
 
 const Organization = () => {
-  const theme = useTheme();
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
-
-  //validation
   const [formValues, setFormValues] = useState({
     SocietyName: "",
     AddressLine1: "",
@@ -22,446 +32,428 @@ const Organization = () => {
     Mobile: "",
     Email: "",
     Registration: "",
-    RegisteredDate: "",
+    RegisteredDate: null,
     RegisteringAuthority: "",
     AddressofRegisteringAuthority: "",
-
   });
 
   const [formErrors, setFormErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [data, setData] = useState([]);
+
+  // Fetch data from the API
+  useEffect(() => {
+   
+
+    fetchBoardMembers();
+  }, []);
+
+
+  const fetchBoardMembers = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get("http://localhost:8001/Organisation"); // Replace with your API endpoint
+      setData(response.data);
+      if (response.data.length > 0) {
+        setFormValues({
+          ...response.data[0],
+          RegisteredDate: response.data[0].RegisteredDate
+            ? new Date(response.data[0].RegisteredDate)
+            : null,
+        });
+      }
+    } catch (err) {
+      setError(err.message || "Failed to fetch data");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleChange = (field, value) => {
     setFormValues((prev) => ({ ...prev, [field]: value }));
-    setFormErrors((prev) => ({ ...prev, [field]: "" })); // Clear error on change
+    setFormErrors((prev) => ({ ...prev, [field]: "" }));
   };
 
   const validate = () => {
     const errors = {};
+    const requiredFields = [
+      "SocietyName",
+      "AddressLine1",
+      "State",
+      "Pin",
+      "Mobile",
+      "Email",
+      "Registration",
+      "RegisteredDate",
+      "RegisteringAuthority",
+      "AddressofRegisteringAuthority",
+    ];
 
-    if (!formValues.SocietyName) errors.SocietyName = "SocietyName is required.";
-    if (!formValues.AddressLine1) errors.AddressLine1 = "AddressLine1 is required.";
-    if (!formValues.AddressLine2) errors.AddressLine2 = "AddressLine2 is required.";
-    if (!formValues.AddressLine3) errors.AddressLine3 = "AddressLine3 is required.";
-    if (!formValues.State) errors.State = "State is required.";
-    if (!formValues.Pin) errors.Pin = "Pin is required.";
-    if (!formValues.Mobile) errors.Mobile = "Mobile no is required.";
-    if (!formValues.Email) errors.Email = "Email is required.";
-
-    if (!formValues.Registration) errors.Registration = "Registration is required.";
-    if (!formValues.RegisteredDate) errors.RegisteredDate = "Registered Date is required.";
-    if (!formValues.RegisteringAuthority) errors.RegisteringAuthority = "Registering Authority is required.";
-    if (!formValues.AddressofRegisteringAuthority) errors.AddressofRegisteringAuthority = "Address of Registering Authority is required.";
-    
+    requiredFields.forEach((field) => {
+      if (!formValues[field]) {
+        errors[field] = `${field} is required.`;
+      }
+    });
 
     setFormErrors(errors);
-    return Object.keys(errors).length === 0; // Return true if no errors
+    return Object.keys(errors).length === 0;
   };
 
-  const handleSave = () => {
-    if (validate()) {
-      // Perform save action
-      console.log("Form submitted:", formValues);
+  const handleSave = async () => {
+    if (!validate()) return;
 
+    setLoading(true);
+    setError("");
+
+    try {
+      const payload = {
+        ...formValues,
+        RegisteredDate: formValues.RegisteredDate
+          ? formValues.RegisteredDate.toISOString()
+          : null,
+      };
+
+      if (data.length > 0) {
+        // Update existing record
+        const updatedData = await axios.patch(
+          `http://localhost:8001/Organisation/${data[0]._id}`,
+          payload
+        );
+        setData([updatedData.data]);
+        alert("Society updated successfully!");
+      } else {
+        // Create new record
+        const newData = await axios.post(
+          "http://localhost:8001/Organisation",
+          payload
+        );
+        setData([newData.data]);
+        alert("Society created successfully!");
+      }
+
+      setIsDrawerOpen(false); // Close drawer after saving
+    } catch (err) {
+      setError(err.response?.data?.message || "An error occurred.");
+    } finally {
+      setLoading(false);
+    }
+    fetchBoardMembers();
+
+  };
+
+  const handleCancel = () => {
+    setIsDrawerOpen(false); // Close drawer without saving
+  };
+
+  const handleEdit = () => {
+    if (data.length > 0) {
+      setFormValues({
+        ...data[0],
+        RegisteredDate: data[0].RegisteredDate
+          ? new Date(data[0].RegisteredDate)
+          : null,
+      });
+      setIsDrawerOpen(true); // Open drawer for editing
     }
   };
 
-
+  const handleDelete = async () => {
+    if (data.length > 0) {
+      try {
+        await axios.delete(`http://localhost:8001/Organisation/${data[0].id}`);
+        setData([]); // Clear existing record
+        alert("Society information deleted successfully!");
+      } catch (err) {
+        setError("An error occurred.");
+      }
+    }
+  };
 
   return (
-    <Box sx={{ background: 'rgb(236 242 246)', borderRadius: '10px', p: 2, height: 'auto' }}>
-      <Box textAlign={'center'} m={1}>
-        <Typography variant='h4'>Society Information</Typography>
-      </Box>
-      <Divider />
+    <Box
+      sx={{
+        background: "rgb(236 242 246)",
+        borderRadius: "10px",
+        p: 3,
+        maxWidth: "800px",
+        margin: "auto",
+      }}
+    >
+      <Typography variant="h4" align="center" gutterBottom>
+        Society Information
+      </Typography>
+      <Divider sx={{ mb: 3 }} />
 
-      <Box mt={2} >
-
-
-
-        <Box >
-          <Typography>Society Name</Typography>
-          <TextField size="small" margin="normal" onChange={(e) => handleChange("SocietyName", e.target.value)} value={formValues.SocietyName} error={!!formErrors.SocietyName} fullWidth placeholder='Society Name' />
-
-          {(!!formErrors.SocietyName) && (
-            <Alert severity="error" sx={{
-              width: '92%',
-              p: '2',
-              pl: '4%', height: '23px',
-              borderRadius: '8px',
-              borderTopLeftRadius: '0',
-              borderTopRightRadius: '0',
-              fontSize: '12px',
-              display: 'flex',
-              backgroundColor: "#ffdddd",
-              color: "#a00",
-              alignItems: 'center',
-              '& .MuiAlert-icon': {
-                fontSize: '16px',
-                mr: '8px',
-              },
-            }}>
-              {formErrors.SocietyName}
-            </Alert>
-          )}
-        </Box>
-
-
-
-
-        <Box display="flex"
-          gap={isSmallScreen ? 1 : 2}>
-          <Box flex={1} >
-
-            <Box mt={1}>
-              <Typography>Address Line1</Typography>
-              <TextField onChange={(e) => handleChange("AddressLine1", e.target.value)} value={formValues.AddressLine1} error={!!formErrors.AddressLine1} size="small" margin="normal" placeholder="Address Line1" fullWidth />
-              {(!!formErrors.AddressLine1) && (
-                <Alert severity="error" sx={{
-                  width: '92%',
-                  p: '2',
-                  pl: '4%', height: '23px',
-                  borderRadius: '8px',
-                  borderTopLeftRadius: '0',
-                  borderTopRightRadius: '0',
-                  fontSize: '12px',
-                  display: 'flex',
-                  backgroundColor: "#ffdddd",
-                  color: "#a00",
-                  alignItems: 'center',
-                  '& .MuiAlert-icon': {
-                    fontSize: '16px',
-                    mr: '8px',
-                  },
-                }}>
-                  {formErrors.AddressLine1}
-                </Alert>
-              )}
-            </Box>
-
-            <Box>
-              <Typography>Address Line3</Typography>
-              <TextField onChange={(e) => handleChange("AddressLine3", e.target.value)} value={formValues.AddressLine3} error={!!formErrors.AddressLine3} size="small" margin="normal" placeholder="Address Line3" fullWidth />
-              {(!!formErrors.AddressLine3) && (
-                <Alert severity="error" sx={{
-                  width: '92%',
-                  p: '2',
-                  pl: '4%', height: '23px',
-                  borderRadius: '8px',
-                  borderTopLeftRadius: '0',
-                  borderTopRightRadius: '0',
-                  fontSize: '12px',
-                  display: 'flex',
-                  backgroundColor: "#ffdddd",
-                  color: "#a00",
-                  alignItems: 'center',
-                  '& .MuiAlert-icon': {
-                    fontSize: '16px',
-                    mr: '8px',
-                  },
-                }}>
-                  {formErrors.AddressLine3}
-                </Alert>
-              )}
-            </Box>
-
-            <Box>
-              <Typography>Pin</Typography>
-              <TextField onChange={(e) => handleChange("Pin", e.target.value)} value={formValues.Pin} error={!!formErrors.Pin} size="small" margin="normal" placeholder="Pin" fullWidth />
-              {(!!formErrors.Pin) && (
-                <Alert severity="error" sx={{
-                  width: '92%',
-                  p: '2',
-                  pl: '4%', height: '23px',
-                  borderRadius: '8px',
-                  borderTopLeftRadius: '0',
-                  borderTopRightRadius: '0',
-                  fontSize: '12px',
-                  display: 'flex',
-                  backgroundColor: "#ffdddd",
-                  color: "#a00",
-                  alignItems: 'center',
-                  '& .MuiAlert-icon': {
-                    fontSize: '16px',
-                    mr: '8px',
-                  },
-                }}>
-                  {formErrors.Pin}
-                </Alert>
-              )}
-            </Box>
-          </Box>
-
-          <Box flex={1} mt={1} >
-            <Box>
-              <Typography>Address Line2</Typography>
-              <TextField onChange={(e) => handleChange("AddressLine2", e.target.value)} value={formValues.AddressLine2} error={!!formErrors.AddressLine2} size="small" margin="normal" placeholder="AddressLine2" fullWidth />
-
-
-
-              {(!!formErrors.AddressLine2) && (
-                <Alert severity="error" sx={{
-                  width: '92%',
-                  p: '2',
-                  pl: '4%', height: '23px',
-                  borderRadius: '8px',
-                  borderTopLeftRadius: '0',
-                  borderTopRightRadius: '0',
-                  fontSize: '12px',
-                  display: 'flex',
-                  backgroundColor: "#ffdddd",
-                  color: "#a00",
-                  alignItems: 'center',
-                  '& .MuiAlert-icon': {
-                    fontSize: '16px',
-                    mr: '8px',
-                  },
-                }}>
-                  {formErrors.AddressLine2}
-                </Alert>
-              )}
-            </Box>
-
-            <Box>
-              <Typography>State</Typography>
-              <FormControl fullWidth size="small" margin="normal" placeholder='State' onChange={(e) => handleChange("State", e.target.value)} value={formValues.State} error={!!formErrors.State}>
-
-
-                <Select>
-                  <MenuItem value="India">India</MenuItem>
-                  <MenuItem value="USA">USA</MenuItem>
-                  <MenuItem value="SouthAfrica">SouthAfrica</MenuItem>
-                </Select>
-
-                {(!!formErrors.State) && (
-                  <Alert severity="error" sx={{
-                    width: '92%',
-                    p: '2',
-                    pl: '4%', height: '23px',
-                    borderRadius: '8px',
-                    borderTopLeftRadius: '0',
-                    borderTopRightRadius: '0',
-                    fontSize: '12px',
-                    display: 'flex',
-                    backgroundColor: "#ffdddd",
-                    color: "#a00",
-                    alignItems: 'center',
-                    '& .MuiAlert-icon': {
-                      fontSize: '16px',
-                      mr: '8px',
-                    },
-                  }}>
-                    {formErrors.State}
-                  </Alert>
-                )}
-              </FormControl>
-            </Box>
-
-            <Box>
-              <Typography>Mobile No</Typography>
-              <TextField onChange={(e) => handleChange("Mobile", e.target.value)} value={formValues.Mobile} error={!!formErrors.Mobile} size="small" margin="normal" placeholder="Mobile No" fullWidth />
-
-              {(!!formErrors.Mobile) && (
-                <Alert severity="error" sx={{
-                  width: '92%',
-                  p: '2',
-                  pl: '4%', height: '23px',
-                  borderRadius: '8px',
-                  borderTopLeftRadius: '0',
-                  borderTopRightRadius: '0',
-                  fontSize: '12px',
-                  display: 'flex',
-                  backgroundColor: "#ffdddd",
-                  color: "#a00",
-                  alignItems: 'center',
-                  '& .MuiAlert-icon': {
-                    fontSize: '16px',
-                    mr: '8px',
-                  },
-                }}>
-                  {formErrors.Mobile}
-                </Alert>
-              )}
-            </Box>
-          </Box>
-
-        </Box>
-
+      {data.length > 0 ? (
         <Box>
-          <Typography>Email Id</Typography>
-          <TextField onChange={(e) => handleChange("Email", e.target.value)} value={formValues.Email} error={!!formErrors.Email} size="small" margin="normal" placeholder="Email Id" fullWidth />
-
-          {(!!formErrors.Email) && (
-            <Alert severity="error" sx={{
-              width: '92%',
-              p: '2',
-              pl: '4%', height: '23px',
-              borderRadius: '8px',
-              borderTopLeftRadius: '0',
-              borderTopRightRadius: '0',
-              fontSize: '12px',
-              display: 'flex',
-              backgroundColor: "#ffdddd",
-              color: "#a00",
-              alignItems: 'center',
-              '& .MuiAlert-icon': {
-                fontSize: '16px',
-                mr: '8px',
+          {/* Display Existing Record */}
+          <Typography variant="h6" fontWeight="bold" gutterBottom>
+            {data[0].SocietyName}
+          </Typography>
+          <Grid container spacing={2}>
+            {[
+              { label: "Address Line 1", value: data[0].AddressLine1 },
+              { label: "Address Line 2", value: data[0].AddressLine2 },
+              { label: "Address Line 3", value: data[0].AddressLine3 },
+              { label: "State", value: data[0].State },
+              { label: "Pin Code", value: data[0].Pin },
+              { label: "Mobile No", value: data[0].Mobile },
+              { label: "Email", value: data[0].Email },
+              { label: "Registration", value: data[0].Registration },
+              {
+                label: "Registered Date",
+                value: data[0].RegisteredDate
+                  ? new Date(data[0].RegisteredDate).toLocaleDateString()
+                  : "N/A",
               },
-            }}>
-              {formErrors.Email}
-            </Alert>
-          )}
-        </Box>
+              {
+                label: "Registering Authority",
+                value: data[0].RegisteringAuthority,
+              },
+              {
+                label: "Address of Registering Authority",
+                value: data[0].AddressofRegisteringAuthority,
+              },
+            ].map((field, index) => (
+              <Grid item xs={12} md={6} key={index}>
+                <Typography variant="body1" fontWeight="bold">
+                  {field.label}:
+                </Typography>
+                <Typography variant="body1">{field.value}</Typography>
+              </Grid>
+            ))}
+          </Grid>
 
-        <Box display={'flex'} alignItems="center" gap={2}>
-          <Box flex={1}>
-            <Box>
-              <Typography>Registration</Typography>
-              <TextField onChange={(e) => handleChange("Registration", e.target.value)} value={formValues.Registration} error={!!formErrors.Registration} size="small" margin="normal" placeholder="Registration" fullWidth />
-              {(!!formErrors.Registration) && (
-                <Alert severity="error" sx={{
-                  width: '92%',
-                  p: '2',
-                  pl: '4%', height: '23px',
-                  borderRadius: '8px',
-                  borderTopLeftRadius: '0',
-                  borderTopRightRadius: '0',
-                  fontSize: '12px',
-                  display: 'flex',
-                  backgroundColor: "#ffdddd",
-                  color: "#a00",
-                  alignItems: 'center',
-                  '& .MuiAlert-icon': {
-                    fontSize: '16px',
-                    mr: '8px',
-                  },
-                }}>
-                  {formErrors.Registration}
-                </Alert>
-              )}
-            </Box>
+          {/* Edit and Delete Buttons */}
+          <Box display="flex" justifyContent="center" gap={2} mt={4}>
+            <Button variant="contained" onClick={handleEdit}>
+              Edit
+            </Button>
+            <Button variant="outlined" color="error" onClick={handleDelete}>
+              Delete
+            </Button>
           </Box>
+        </Box>
+      ) : (
+        <Box display="flex" justifyContent="center">
+          <Button variant="contained" onClick={() => setIsDrawerOpen(true)}>
+            Add New Society
+          </Button>
+        </Box>
+      )}
 
-          <Box flex={1}>
+      {/* Drawer for Form */}
+      <Drawer
+        anchor="right"
+        open={isDrawerOpen}
+        onClose={handleCancel}
+        sx={{ "& .MuiDrawer-paper": { width: "40%", p: 3 } }}
+      >
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Typography variant="h6">
+            {data.length > 0 ? "Edit Society" : "Add New Society"}
+          </Typography>
+          <IconButton onClick={handleCancel}>
+            <CloseIcon />
+          </IconButton>
+        </Box>
+        <Divider sx={{ my: 2 }} />
 
-            <Box >
-              <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <Box  >
-                  <Typography >Registered Date</Typography>
-                  <DatePicker
-                  
-                    format="dd/MM/yyyy"
-                    sx={{ width: "100%", }}
-                    renderInput={(params) => <TextField {...params} size="small"   
-                    />}
+        {/* Form Fields */}
+        <Grid container spacing={2}>
+          {/* Society Name */}
+          <Grid item xs={12}>
+            <TextField
+              label="Society Name"
+              value={formValues.SocietyName}
+              onChange={(e) => handleChange("SocietyName", e.target.value)}
+              error={!!formErrors.SocietyName}
+              helperText={formErrors.SocietyName}
+              fullWidth
+            />
+          </Grid>
+
+          {/* Address Line 1 and Address Line 2 */}
+          <Grid item xs={6}>
+            <TextField
+              label="Address Line 1"
+              value={formValues.AddressLine1}
+              onChange={(e) => handleChange("AddressLine1", e.target.value)}
+              error={!!formErrors.AddressLine1}
+              helperText={formErrors.AddressLine1}
+              fullWidth
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              label="Address Line 2"
+              value={formValues.AddressLine2}
+              onChange={(e) => handleChange("AddressLine2", e.target.value)}
+              error={!!formErrors.AddressLine2}
+              helperText={formErrors.AddressLine2}
+              fullWidth
+            />
+          </Grid>
+
+          {/* Address Line 3 and State */}
+          <Grid item xs={6}>
+            <TextField
+              label="Address Line 3"
+              value={formValues.AddressLine3}
+              onChange={(e) => handleChange("AddressLine3", e.target.value)}
+              error={!!formErrors.AddressLine3}
+              helperText={formErrors.AddressLine3}
+              fullWidth
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <FormControl fullWidth error={!!formErrors.State}>
+              <InputLabel>State</InputLabel>
+              <Select
+                value={formValues.State}
+                onChange={(e) => handleChange("State", e.target.value)}
+                label="State"
+              >
+                <MenuItem value="India">India</MenuItem>
+                <MenuItem value="USA">USA</MenuItem>
+                <MenuItem value="SouthAfrica">South Africa</MenuItem>
+              </Select>
+              {formErrors.State && (
+                <Typography color="error" variant="caption">
+                  {formErrors.State}
+                </Typography>
+              )}
+            </FormControl>
+          </Grid>
+
+          {/* Pin and Mobile */}
+          <Grid item xs={6}>
+            <TextField
+              label="Pin Code"
+              value={formValues.Pin}
+              onChange={(e) => handleChange("Pin", e.target.value)}
+              error={!!formErrors.Pin}
+              helperText={formErrors.Pin}
+              fullWidth
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              label="Mobile No"
+              value={formValues.Mobile}
+              onChange={(e) => handleChange("Mobile", e.target.value)}
+              error={!!formErrors.Mobile}
+              helperText={formErrors.Mobile}
+              fullWidth
+            />
+          </Grid>
+
+          {/* Email and Registration */}
+          <Grid item xs={6}>
+            <TextField
+              label="Email"
+              value={formValues.Email}
+              onChange={(e) => handleChange("Email", e.target.value)}
+              error={!!formErrors.Email}
+              helperText={formErrors.Email}
+              fullWidth
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              label="Registration"
+              value={formValues.Registration}
+              onChange={(e) => handleChange("Registration", e.target.value)}
+              error={!!formErrors.Registration}
+              helperText={formErrors.Registration}
+              fullWidth
+            />
+          </Grid>
+
+          {/* Registered Date and Registering Authority */}
+          <Grid item xs={6}>
+            <LocalizationProvider dateAdapter={AdapterDateFns}>
+              <DatePicker
+                label="Registered Date"
+                value={formValues.RegisteredDate ? new Date(formValues.RegisteredDate) : null}
+                onChange={(value) => handleChange("RegisteredDate", value)}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    fullWidth
+                    error={!!formErrors.RegisteredDate}
+                    helperText={formErrors.RegisteredDate}
                   />
-                </Box>
-                {(!!formErrors.RegisteredDate) && (
-                <Alert severity="error" sx={{
-                  width: '92%',
-                  p: '2',
-                  pl: '4%', height: '23px',
-                  borderRadius: '8px',
-                  borderTopLeftRadius: '0',
-                  borderTopRightRadius: '0',
-                  fontSize: '12px',
-                  display: 'flex',
-                  backgroundColor: "#ffdddd",
-                  color: "#a00",
-                  alignItems: 'center',
-                  '& .MuiAlert-icon': {
-                    fontSize: '16px',
-                    mr: '8px',
-                  },
-                }}>
-                  {formErrors.RegisteredDate}
-                </Alert>
+                )}
+              />
+            </LocalizationProvider>
+          </Grid>
+          <Grid item xs={6}>
+            <FormControl fullWidth error={!!formErrors.RegisteringAuthority}>
+              <InputLabel>Registering Authority</InputLabel>
+              <Select
+                value={formValues.RegisteringAuthority}
+                onChange={(e) =>
+                  handleChange("RegisteringAuthority", e.target.value)
+                }
+                label="Registering Authority"
+              >
+                <MenuItem value="Deputy Registrar">Deputy Registrar</MenuItem>
+                <MenuItem value="Assistant Registrar">
+                  Assistant Registrar
+                </MenuItem>
+                <MenuItem value="Cooperative Societies">
+                  Cooperative Societies
+                </MenuItem>
+              </Select>
+              {formErrors.RegisteringAuthority && (
+                <Typography color="error" variant="caption">
+                  {formErrors.RegisteringAuthority}
+                </Typography>
               )}
-              </LocalizationProvider>
-              
-        
-            </Box>
-          </Box>
+            </FormControl>
+          </Grid>
+
+          {/* Address of Registering Authority */}
+          <Grid item xs={12}>
+            <TextField
+              label="Address of Registering Authority"
+              value={formValues.AddressofRegisteringAuthority}
+              onChange={(e) =>
+                handleChange("AddressofRegisteringAuthority", e.target.value)
+              }
+              error={!!formErrors.AddressofRegisteringAuthority}
+              helperText={formErrors.AddressofRegisteringAuthority}
+              fullWidth
+            />
+          </Grid>
+        </Grid>
+
+        {/* Save and Cancel Buttons */}
+        <Box display="flex" justifyContent="center" gap={2} mt={4}>
+          <Button
+            variant="contained"
+            onClick={handleSave}
+            disabled={loading}
+            startIcon={loading ? <CircularProgress size={20} /> : null}
+          >
+            Save
+          </Button>
+          <Button variant="outlined" onClick={handleCancel}>
+            Cancel
+          </Button>
         </Box>
+      </Drawer>
 
-        <Box>
-          <Typography>Registering Authority</Typography>
-          <FormControl fullWidth size="small" margin="normal" placeholder='Registering Authority' onChange={(e) => handleChange("RegisteringAuthority", e.target.value)} value={formValues.RegisteringAuthority} error={!!formErrors.RegisteringAuthority}>
-
-            <Select>
-              <MenuItem value="Deputy Registrar">Deputy Registrar</MenuItem>
-              <MenuItem value="Assistant Registrar">Assistant Registrar</MenuItem>
-              <MenuItem value="Cooperative Societies">Cooperative Societies</MenuItem>
-              <MenuItem value="ward">Ward</MenuItem>
-              <MenuItem value="tal">Tal</MenuItem>
-            </Select>
-            {(!!formErrors.RegisteringAuthority) && (
-              <Alert severity="error" sx={{
-                width: '92%',
-                p: '2',
-                pl: '4%', height: '23px',
-                borderRadius: '8px',
-                borderTopLeftRadius: '0',
-                borderTopRightRadius: '0',
-                fontSize: '12px',
-                display: 'flex',
-                backgroundColor: "#ffdddd",
-                color: "#a00",
-                alignItems: 'center',
-                '& .MuiAlert-icon': {
-                  fontSize: '16px',
-                  mr: '8px',
-                },
-              }}>
-                {formErrors.RegisteringAuthority}
-              </Alert>
-            )}
-
-          </FormControl>
-        </Box>
-
-        <Box>
-          <Typography>Address of Registering Authority</Typography>
-          <TextField onChange={(e) => handleChange("AddressofRegisteringAuthority", e.target.value)} value={formValues.AddressofRegisteringAuthority} error={!!formErrors.AddressofRegisteringAuthority} size="small" margin="normal" placeholder="Address of Registering Authority" fullWidth />
-          {(!!formErrors.AddressofRegisteringAuthority) && (
-            <Alert severity="error" sx={{
-              width: '92%',
-              p: '2',
-              pl: '4%', height: '23px',
-              borderRadius: '8px',
-              borderTopLeftRadius: '0',
-              borderTopRightRadius: '0',
-              fontSize: '12px',
-              display: 'flex',
-              backgroundColor: "#ffdddd",
-              color: "#a00",
-              alignItems: 'center',
-              '& .MuiAlert-icon': {
-                fontSize: '16px',
-                mr: '8px',
-              },
-            }}>
-              {formErrors.AddressofRegisteringAuthority}
-            </Alert>
-          )}
-        </Box>
-
-
-      </Box>
-
-
-
-      <Box display={'flex'} alignItems={'center'} justifyContent={'center'} gap={2} mt={4} mb={4}>
-        <Box>
-          <Button onClick={handleSave} variant='contained'>Save </Button>
-        </Box>
-
-        <Box>
-          <Button variant='outlined'>Cancel </Button>
-        </Box>
-      </Box>
+      {error && (
+        <Alert severity="error" sx={{ mt: 2 }}>
+          {error}
+        </Alert>
+      )}
     </Box>
-  )
-}
+  );
+};
 
-export default Organization
+export default Organization;

@@ -1,173 +1,144 @@
-
-import React, { useMemo, useState } from 'react';
-import {  Alert, useMediaQuery,Box, Button, Typography, TextField, Drawer, Divider, FormControl, Select, MenuItem, InputLabel, Checkbox, Menu } from '@mui/material';
-import { MaterialReactTable, } from 'material-react-table';
+import React, { useMemo, useState, useEffect } from 'react';
+import {
+    Alert, useMediaQuery, Box, Button, Typography, TextField, Drawer, Divider, FormControl, Select, MenuItem, InputLabel, Checkbox, Menu
+} from '@mui/material';
+import { MaterialReactTable } from 'material-react-table';
 import CloseIcon from '@mui/icons-material/Close';
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import meetingdata from './meetingdata.json'
 import { useTheme } from "@mui/material/styles";
+import axios from 'axios'; // For API calls
 
 const Meeting = () => {
- const theme = useTheme();
- const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+    const theme = useTheme();
+    const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
-    const columns = useMemo(() => {
-        return [
-            {
-                accessorKey: 'srNo',
-                header: 'Sr No',
-                size: 100,
-            },
-            {
-                accessorKey: 'MeetingType',
-                header: 'Meeting Type',
-                size: 150,
-            },
-            {
-                accessorKey: 'Datefrom',
-                header: 'Date from',
-                size: 150,
-            },
-            {
-                accessorKey: 'DateTo',
-                header: 'Date To',
-                size: 150,
-            },
-            {
-                accessorKey: 'Place',
-                header: 'Place',
-                size: 150,
-            },
-            {
-                accessorKey: 'Description',
-                header: 'Description',
-                size: 150,
-            },
-            {
-                accessorKey: 'Comments',
-                header: 'Comments',
-                size: 150,
-            },
+    // State for managing meetings data
+    const [meetings, setMeetings] = useState([]);
+    const [selectedMeeting, setSelectedMeeting] = useState(null); // For editing
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false); // For add/edit drawer
+    const [formData, setFormData] = useState({
+        meetingType: '',
+        dateFrom: null,
+        dateTo: null,
+        description: '',
+        place: '',
+        comments: '',
+    });
 
-            // {
-            //     id: 'actions',
-            //     header: 'Actions',
-            //     size: 150,
-
-            // },
-        ];
+    // Fetch meetings data from the API
+    useEffect(() => {
+        fetchMeetings();
     }, []);
 
-
-
-
-    const mettingsubjectcolumns = useMemo(() => {
-        return [
-            {
-                accessorKey: 'srNo',
-                header: 'Sr No',
-                size: 100,
-            },
-            {
-                accessorKey: 'SubjectType',
-                header: 'Subject Type',
-                size: 150,
-            },
-            {
-                accessorKey: 'Subject',
-                header: 'Subject',
-                size: 150,
-            },
-
-            {
-                id: 'actions',
-                header: 'Actions',
-                size: 150,
-
-            },
-        ];
-    }, []);
-
-    const mettingsubjectdata = [
-        {
-            srNo: 1,
-            SubjectType: 'Discussion',
-            Subject: 'Annual Budget Planning',
-            actions: 'Edit/Delete',
-        },
-    ];
-
-
-    const [anchorEl, setAnchorEl] = useState(null);
-
-    const handleMenuOpen = (event) => {
-        setAnchorEl(event.currentTarget);
+    const fetchMeetings = async () => {
+        try {
+            const response = await axios.get('http://localhost:8001/Meeting');
+            setMeetings(response.data);
+        } catch (error) {
+            console.error('Error fetching meetings:', error);
+        }
     };
 
-    const handleMenuClose = () => {
-        setAnchorEl(null);
-    };
-
-    // for add new meeting drawer
-    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-    const handleDrawerOpen = () => {
+    // Handle row click for editing
+    const handleRowClick = (row) => {
+        setSelectedMeeting(row);
+        setFormData({
+            meetingType: row.meetingType,
+            dateFrom: new Date(row.dateFrom),
+            dateTo: new Date(row.dateTo),
+            description: row.description,
+            place: row.place,
+            comments: row.comments,
+        });
         setIsDrawerOpen(true);
-
     };
 
-    const handleDrawerClose = () => {
-        setIsDrawerOpen(false);
+    // Handle form input changes
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({ ...formData, [name]: value });
     };
 
-
-    // for Meeting Subject drawer
-    const [meetingSubjectDrawerOpen, setMeetingSubjectDrawerOpen] = useState(false);
-    const handleMeetingSubjectDrawerOpen = () => {
-        setMeetingSubjectDrawerOpen(true);
-        handleMenuClose(true)
+    // Handle date changes
+    const handleDateChange = (name, date) => {
+        setFormData({ ...formData, [name]: date });
     };
 
-    const handleMeetingSubjectDrawerClose = () => {
-        setMeetingSubjectDrawerOpen(false);
+    // Handle form submission (for both create and update)
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            if (selectedMeeting) {
+                // Update existing meeting
+                await axios.patch(`http://localhost:8001/Meeting/${selectedMeeting._id}`, formData);
+            } else {
+                // Create new meeting
+                await axios.post('http://localhost:8001/Meeting', formData);
+            }
+            fetchMeetings(); // Refresh the meetings list
+            setIsDrawerOpen(false); // Close the drawer
+            setSelectedMeeting(null); // Reset selected meeting
+            setFormData({ // Reset form data
+                meetingType: '',
+                dateFrom: null,
+                dateTo: null,
+                description: '',
+                place: '',
+                comments: '',
+            });
+        } catch (error) {
+            console.error('Error saving meeting:', error);
+        }
     };
 
-    // for Meeting officer drawer
-    const [meetingOfficerDrawerOpen, setMeetingOfficerDrawerOpen] = useState(false);
-    const handleMeetingOfficerDrawerOpen = () => {
-        setMeetingOfficerDrawerOpen(true);
-        handleMenuClose(true)
+    // Handle delete meeting
+    const handleDeleteMeeting = async (id) => {
+        try {
+            await axios.delete(`http://localhost:8001/Meeting/${id}`);
+            fetchMeetings(); // Refresh the meetings list
+            setIsDrawerOpen(false); // Close the drawer
+            setSelectedMeeting(null); // Reset selected meeting
+        } catch (error) {
+            console.error('Error deleting meeting:', error);
+        }
     };
 
-    const handleMeetingOfficerDrawerClose = () => {
-        setMeetingOfficerDrawerOpen(false);
+    // Format date to display only the part before "T"
+    const formatDate = (dateString) => {
+        return dateString ? dateString.split('T')[0] : '';
     };
 
-    // for Meeting Resolution drawer
-    const [meetingResolutionDrawerOpen, setMeetingResolutionDrawerOpen] = useState(false);
-    const handleMeetingResolutionDrawerOpen = () => {
-        setMeetingResolutionDrawerOpen(true);
-        handleMenuClose(true)
-    };
-
-    const handleMeetingResolutionDrawerClose = () => {
-        setMeetingResolutionDrawerOpen(false);
-    };
-
-
-    //for Serch meeting drawer
-
-    const [Open, setOpen] = useState(false);
-    const handlefindMemberDrawerOpen = () => {
-        setOpen(true);
-    };
-
-    const handlefindMemberDrawerClose = () => {
-        setOpen(false);
-    };
-
+    // Table columns
+    const columns = useMemo(() => [
+        { accessorKey: 'srNo', header: 'Sr No', size: 100 },
+        { accessorKey: 'meetingType', header: 'Meeting Type', size: 150 },
+        {
+            accessorKey: 'dateFrom',
+            header: 'Date From',
+            size: 150,
+            Cell: ({ row }) => formatDate(row.original.dateFrom), // Format date
+        },
+        {
+            accessorKey: 'dateTo',
+            header: 'Date To',
+            size: 150,
+            Cell: ({ row }) => formatDate(row.original.dateTo), // Format date
+        },
+        { accessorKey: 'place', header: 'Place', size: 150 },
+        { accessorKey: 'description', header: 'Description', size: 150 },
+        { accessorKey: 'comments', header: 'Comments', size: 150 },
+        {
+            id: 'actions',
+            header: 'Actions',
+            size: 150,
+            Cell: ({ row }) => (
+                <Button onClick={() => handleDeleteMeeting(row.original._id)}>Delete</Button>
+            ),
+        },
+    ], []);
 
     return (
         <Box>
@@ -176,53 +147,50 @@ const Meeting = () => {
                     <Typography variant='h4'>Meeting</Typography>
                 </Box>
                 <Box sx={{ display: 'flex', gap: 3 }}>
-                    <Button variant="contained" onClick={handleDrawerOpen}> Add New Meeting</Button>
-                    {/* <Button variant='contained' onClick={handlefindMemberDrawerOpen}>Serch Metting</Button> */}
+                    <Button variant="contained" onClick={() => setIsDrawerOpen(true)}>Add New Meeting</Button>
                 </Box>
 
                 <Box mt={4}>
                     <MaterialReactTable
                         columns={columns}
-                        data={meetingdata}
-
+                        data={meetings}
                         enableColumnOrdering
                         enableColumnResizing
+                        muiTableBodyRowProps={({ row }) => ({
+                            onClick: () => handleRowClick(row.original), // Open edit form on row click
+                            sx: { cursor: 'pointer' }, // Change cursor to pointer
+                        })}
                     />
                 </Box>
 
-
-                {/* drawer for  Add New Meeting  */}
+                {/* Drawer for Add/Edit Meeting */}
                 <Drawer
                     anchor="right"
                     open={isDrawerOpen}
-                    onClose={handleDrawerClose}
+                    onClose={() => {
+                        setIsDrawerOpen(false);
+                        setSelectedMeeting(null);
+                        setFormData({
+                            meetingType: '',
+                            dateFrom: null,
+                            dateTo: null,
+                            description: '',
+                            place: '',
+                            comments: '',
+                        });
+                    }}
                     PaperProps={{
-                        sx: { borderRadius: isSmallScreen ? "0" : "10px 0 0 10px",
-                          width: isSmallScreen ? "100%" : "650px",
-                          zIndex: 1000, }, // Set the width here
-                      }}
+                        sx: {
+                            borderRadius: isSmallScreen ? "0" : "10px 0 0 10px",
+                            width: isSmallScreen ? "100%" : "650px",
+                            zIndex: 1000,
+                        },
+                    }}
                 >
                     <Box sx={{ padding: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <Typography m={2} variant="h6"><b> Add New Meeting</b></Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <MoreVertIcon sx={{ cursor: 'pointer' }} onClick={handleMenuOpen} />
-                            <CloseIcon sx={{ cursor: 'pointer' }} onClick={handleDrawerClose} />
-                        </Box>
-
-                        <Menu
-                            anchorEl={anchorEl}
-                            open={Boolean(anchorEl)}
-                            onClose={handleMenuClose}
-                        >
-                            <MenuItem onClick={handleMeetingSubjectDrawerOpen} >Meeting Subject</MenuItem>
-                            <MenuItem onClick={handleMeetingOfficerDrawerOpen} >Meeting Officer</MenuItem>
-                            <MenuItem onClick={handleMeetingResolutionDrawerOpen} >Meeting Resolution</MenuItem>
-                        </Menu>
+                        <Typography m={2} variant="h6"><b>{selectedMeeting ? 'Edit Meeting' : 'Add New Meeting'}</b></Typography>
+                        <CloseIcon sx={{ cursor: 'pointer' }} onClick={() => setIsDrawerOpen(false)} />
                     </Box>
-                    <Divider />
-
-
-
                     <Divider />
 
                     <Box display="flex" alignItems="center" gap={2}>
@@ -230,322 +198,99 @@ const Meeting = () => {
                             <Box m={2}>
                                 <Typography>Meeting Type</Typography>
                                 <FormControl fullWidth size="small" margin="normal">
-
-                                    <Select>
-                                        <MenuItem value="Home">Residential</MenuItem>
-                                        <MenuItem value="Office">Commercial</MenuItem>
-
+                                    <Select
+                                        name="meetingType"
+                                        value={formData.meetingType}
+                                        onChange={handleInputChange}
+                                    >
+                                        <MenuItem value="Residential">Residential</MenuItem>
+                                        <MenuItem value="Commercial">Commercial</MenuItem>
                                     </Select>
                                 </FormControl>
                             </Box>
 
                             <Box m={2}>
                                 <LocalizationProvider dateAdapter={AdapterDateFns}>
-                                    <Box  >
-                                        <Typography > Date From</Typography>
-                                        <DatePicker
-
-                                            format="dd/MM/yyyy"
-                                            sx={{ width: "100%", }}
-                                            renderInput={(params) => <TextField {...params} size="small" />}
-                                        />
-                                    </Box>
+                                    <Typography>Date From</Typography>
+                                    <DatePicker
+                                        value={formData.dateFrom}
+                                        onChange={(date) => handleDateChange('dateFrom', date)}
+                                        renderInput={(params) => <TextField {...params} size="small" fullWidth />}
+                                    />
                                 </LocalizationProvider>
                             </Box>
+
                             <Box m={2}>
                                 <Typography>Description</Typography>
-                                <TextField size="small" margin="normal" placeholder="Description" fullWidth />
+                                <TextField
+                                    name="description"
+                                    value={formData.description}
+                                    onChange={handleInputChange}
+                                    size="small"
+                                    margin="normal"
+                                    placeholder="Description"
+                                    fullWidth
+                                />
                             </Box>
                         </Box>
-
 
                         <Box flex={1}>
                             <Box m={2}>
                                 <Typography>Place</Typography>
-                                <TextField size="small" margin="normal" placeholder="Place" fullWidth />
+                                <TextField
+                                    name="place"
+                                    value={formData.place}
+                                    onChange={handleInputChange}
+                                    size="small"
+                                    margin="normal"
+                                    placeholder="Place"
+                                    fullWidth
+                                />
                             </Box>
-
 
                             <Box m={2}>
                                 <LocalizationProvider dateAdapter={AdapterDateFns}>
-                                    <Box  >
-                                        <Typography > Date To</Typography>
-                                        <DatePicker
-
-                                            format="dd/MM/yyyy"
-                                            sx={{ width: "100%", }}
-                                            renderInput={(params) => <TextField {...params} size="small" />}
-                                        />
-                                    </Box>
+                                    <Typography>Date To</Typography>
+                                    <DatePicker
+                                        value={formData.dateTo}
+                                        onChange={(date) => handleDateChange('dateTo', date)}
+                                        renderInput={(params) => <TextField {...params} size="small" fullWidth />}
+                                    />
                                 </LocalizationProvider>
                             </Box>
 
                             <Box m={2}>
                                 <Typography>Comments</Typography>
-                                <TextField size="small" margin="normal" placeholder="Comments" fullWidth />
+                                <TextField
+                                    name="comments"
+                                    value={formData.comments}
+                                    onChange={handleInputChange}
+                                    size="small"
+                                    margin="normal"
+                                    placeholder="Comments"
+                                    fullWidth
+                                />
                             </Box>
                         </Box>
                     </Box>
 
-
                     <Box display={'flex'} alignItems={'center'} justifyContent={'center'} gap={2} mt={4}>
-                        <Box>
-                            <Button variant='contained'>Save </Button>
-                        </Box>
-
-                        <Box>
-                            <Button onClick={handleDrawerClose} variant='outlined'>Cancel </Button>
-                        </Box>
+                        <Button variant="contained" onClick={handleSubmit}>Save</Button>
+                        <Button variant="outlined" onClick={() => setIsDrawerOpen(false)}>Cancel</Button>
+                        {selectedMeeting && ( // Show Delete button only in edit mode
+                            <Button
+                                variant="contained"
+                                color="error"
+                                onClick={() => handleDeleteMeeting(selectedMeeting._id)}
+                            >
+                                Delete
+                            </Button>
+                        )}
                     </Box>
                 </Drawer>
-                {/* drawer for meeting subject */}
-                <Drawer
-                    anchor="right"
-                    open={meetingSubjectDrawerOpen}
-                    onClose={handleMeetingSubjectDrawerClose}
-                    PaperProps=
-                        {{
-                            sx: { borderRadius: isSmallScreen ? "0" : "10px 0 0 10px",
-                              width: isSmallScreen ? "100%" : "650px",
-                              zIndex: 1000, }, // Set the width here
-                          }}
-                    
-                >
-                    <Box sx={{ padding: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <Typography m={2} variant="h6"><b>  Meeting Subject</b></Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-
-                            <CloseIcon sx={{ cursor: 'pointer' }} onClick={handleMeetingSubjectDrawerClose} />
-                        </Box>
-                    </Box>
-                    <Divider />
-
-                    <Box m={2} display={'flex'} alignItems={'center'} justifyContent={'space-between'} gap={5}>
-                        <Box flex={1}>
-                            <Typography>Subject Type</Typography>
-                            <FormControl fullWidth size="small" margin="normal">
-
-                                <Select>
-                                    <MenuItem value="Type1">Type1</MenuItem>
-                                    <MenuItem value="Type2">Type2</MenuItem>
-                                </Select>
-                            </FormControl>
-                        </Box>
-
-                        <Box flex={1}>
-                            <Typography>Subject</Typography>
-                            <TextField size="small" margin="normal" placeholder="Subject" fullWidth />
-                        </Box>
-
-                    </Box>
-
-                    <Box mt={4} m={2} >
-                        <MaterialReactTable
-                            columns={mettingsubjectcolumns}
-                            data={mettingsubjectdata}
-                            enableColumnOrdering
-                            enableColumnResizing
-                        />
-                    </Box>
-
-
-
-
-
-
-                    <Box display={'flex'} alignItems={'center'} justifyContent={'center'} gap={2} mt={4}>
-                        <Box>
-                            <Button variant='contained'>Save </Button>
-                        </Box>
-
-                        <Box>
-                            <Button onClick={handleMeetingSubjectDrawerClose} variant='outlined'>Cancel </Button>
-                        </Box>
-                    </Box>
-                </Drawer>
-                {/* drawer for meeting officer */}
-                <Drawer
-                    anchor="right"
-                    open={meetingOfficerDrawerOpen}
-                    onClose={handleMeetingOfficerDrawerClose}
-                    PaperProps=
-                        {{
-                            sx: { borderRadius: isSmallScreen ? "0" : "10px 0 0 10px",
-                              width: isSmallScreen ? "100%" : "650px",
-                              zIndex: 1000, }, // Set the width here
-                          }}
-                   
-                >
-                    <Box sx={{ padding: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <Typography m={2} variant="h6"><b> Meeting Officer</b></Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-
-                            <CloseIcon sx={{ cursor: 'pointer' }} onClick={handleMeetingOfficerDrawerClose} />
-                        </Box>
-                    </Box>
-                    <Divider />
-
-                    <Box mt={1} m={2}>
-                        <Typography>Name</Typography>
-                        <TextField size="small" margin="normal" placeholder="Name" fullWidth />
-                    </Box>
-
-                    <Box mt={1} m={2}>
-                        <Typography>Description</Typography>
-                        <TextField size="small" margin="normal" placeholder="Description" fullWidth />
-                    </Box>
-
-                    <Box mt={1} m={2}>
-                        <Typography>Comments</Typography>
-                        <TextField size="small" margin="normal" placeholder="Comments" fullWidth />
-                    </Box>
-
-                    <Box display={'flex'} alignItems={'center'} justifyContent={'center'} gap={2} mt={4}>
-                        <Box>
-                            <Button variant='contained'>Save </Button>
-                        </Box>
-
-                        <Box>
-                            <Button onClick={handleMeetingOfficerDrawerClose} variant='outlined'>Cancel </Button>
-                        </Box>
-                    </Box>
-                </Drawer>
-                {/* drawer for meeting Resolution */}
-                <Drawer
-                    anchor="right"
-                    open={meetingResolutionDrawerOpen}
-                    onClose={handleMeetingResolutionDrawerClose}
-                    PaperProps= {{
-                        sx: { borderRadius: isSmallScreen ? "0" : "10px 0 0 10px",
-                          width: isSmallScreen ? "100%" : "650px",
-                          zIndex: 1000, }, // Set the width here
-                      }}
-                >
-                    <Box sx={{ padding: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <Typography m={2} variant="h6"><b>Meeting Resolution</b></Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-
-                            <CloseIcon sx={{ cursor: 'pointer' }} onClick={handleMeetingResolutionDrawerClose} />
-                        </Box>
-                    </Box>
-                    <Divider />
-
-                    <Box>
-                        <Box mt={1} m={2}>
-                            <Typography>Meeting Type</Typography>
-                            <FormControl fullWidth size="small" margin="normal" placeholder='Lease Deed Executed'>
-
-                                <Select>
-                                    <MenuItem value="Type1">Type 1</MenuItem>
-                                    <MenuItem value="Type2">Type 2</MenuItem>
-                                </Select>
-                            </FormControl>
-                        </Box>
-
-                        <Box mt={1} m={2}>
-                            <Typography>Subject</Typography>
-                            <TextField size="small" margin="normal" placeholder="Subject" fullWidth />
-                        </Box>
-
-                        <Box mt={1} m={2}>
-                            <Typography>Comments</Typography>
-                            <TextField size="small" margin="normal" placeholder="Comments" fullWidth />
-                        </Box>
-
-                        <Box mt={1} m={2}>
-                            <Typography>Proposed by</Typography>
-                            <TextField size="small" margin="normal" placeholder="Proposed by" fullWidth />
-                        </Box>
-
-                        <Box mt={1} m={2}>
-                            <Typography>Seconded by</Typography>
-                            <TextField size="small" margin="normal" placeholder="Seconded by" fullWidth />
-                        </Box>
-                    </Box>
-
-
-
-
-
-
-
-
-
-
-                    <Box display={'flex'} alignItems={'center'} justifyContent={'center'} gap={2} mt={4}>
-                        <Box>
-                            <Button variant='contained'>Save </Button>
-                        </Box>
-
-                        <Box>
-                            <Button onClick={handleMeetingResolutionDrawerClose} variant='outlined'>Cancel </Button>
-                        </Box>
-                    </Box>
-                </Drawer>
-                {/* drawer for Search Meeting */}
-                <Drawer
-                    anchor="right"
-                    open={Open}
-                    onClose={handlefindMemberDrawerClose}
-                    PaperProps={{
-                        sx: { width: '40%' }, // Set the width here
-                    }}
-                >
-                    <Box sx={{ padding: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <Typography m={2} variant="h6"><b>Search Meeting</b></Typography>
-                        <CloseIcon sx={{ cursor: 'pointer' }} onClick={handlefindMemberDrawerClose} />
-                    </Box>
-                    <Divider />
-
-
-
-                    <Box m={2}>
-                        <Box>
-                            <Typography>Meeting Type</Typography>
-                            <FormControl fullWidth size="small" margin="normal">
-
-                                <Select>
-                                    <MenuItem value="Residential">Residential</MenuItem>
-                                    <MenuItem value="Commercial">Commercial</MenuItem>
-
-
-                                </Select>
-                            </FormControl>
-                        </Box>
-
-                        <Box mt={1}>
-                            <Typography>Place</Typography>
-                            <TextField size="small" margin="normal" placeholder="Place" fullWidth />
-                        </Box>
-
-                        <Box mt={1}>
-                            <Typography>Description</Typography>
-                            <TextField size="small" margin="normal" placeholder="Description" fullWidth />
-                        </Box>
-
-
-                    </Box>
-
-
-
-
-                    <Box display={'flex'} alignItems={'center'} justifyContent={'center'} gap={2} mt={4} mb={4}>
-                        <Box>
-                            <Button variant='contained'>Search </Button>
-                        </Box>
-
-                        <Box>
-                            <Button onClick={handlefindMemberDrawerClose} variant='outlined'>Cancel </Button>
-                        </Box>
-                    </Box>
-                </Drawer>
-
-
             </Box>
         </Box>
     );
 };
 
 export default Meeting;
-
-

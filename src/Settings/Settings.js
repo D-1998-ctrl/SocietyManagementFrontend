@@ -1,537 +1,544 @@
-
-
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, TextField, Select, IconButton, Divider, MenuItem, FormControl, Drawer, Chip, Autocomplete, CardMedia, CardActions, Paper, Card, CardContent, CardHeader } from '@mui/material';
+import { Box, Button, Typography, TextField, Divider, Drawer, FormControl, Select, MenuItem, InputLabel, Card, CardContent, CardActions, CardMedia, Grid } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
-import optiondata from './optiondata.json'
-import { openDB } from "idb";
-import DeleteIcon from '@mui/icons-material/Delete';
-import { MaterialReactTable } from 'material-react-table';
-import { useTheme } from '@mui/material/styles';
-import useMediaQuery from '@mui/material/useMediaQuery';
-import { IoClose } from "react-icons/io5";
-import CardData from './CardData.json'
-import unitcardData from './unitcardData.json'
-import img from '../imgs/img11.jpg';
 import BorderColorIcon from '@mui/icons-material/BorderColor';
-import img2 from '../imgs/download.jpg'
+import DeleteIcon from '@mui/icons-material/Delete';
+import img from '../imgs/img11.jpg';  // Default Wing Image
+import img2 from '../imgs/download.jpg';  // Default Unit Image
+import { IoClose } from "react-icons/io5";
 
 const Settings = () => {
+    const [OpenWingDrawer, setOpenWingDrawer] = useState(false);
+    const [OpenUnitDrawer, setOpenUnitDrawer] = useState(false);
+    const [OpenParkingDrawer, setOpenParkingDrawer] = useState(false);
+    const [editMode, setEditMode] = useState(false);
 
-
-    const colors = ["#fd3241", "#f9b5ac", "#ac6400", "#ff7e39", "#ffea00", "#94ecbe", "#2e8b57", "#76ac1e", "#3cbb50", "#9ed8db", "#0299bb", "#0af4b8", "#466efb", "#0496ff", "#b9c1ff",
-        "#e1b1ff", "#9d33d0", "#d834f5", "#ff54b6", "#1d3354", "#767b91", "#8f8f8f", "#c7c7c7", "#9a657e", "#616468", "#511dff", "#85c7db", "#8cd1ff", "#0aefff", "#d4ff00", "#a1ff0a", "#00f43d", "#ffc100",
-        "#cdc6a5", "#fed6b1", "#e5dfdf", "#ffeaa7"
-    ];
-    const theme = useTheme();
-    const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
-
-
-    const [Open, setOpen] = useState(false);
-    const handlefindMemberDrawerOpen = () => {
-        setOpen(true);
-    };
-
-    const handlefindMemberDrawerClose = () => {
-        setOpen(false);
-    };
-    //drawer for units
-    const [OpenDrawer, setOpenDrawer] = useState(false);
-    const [inputValue, setInputValue] = useState("");
-    const [selectedOption, setSelectedOption] = useState(null);
-    const [options, setOptions] = useState([]);
-    const handleNewUnitsDrawerOpen = () => {
-        setOpenDrawer(true);
-    };
-
-    const handleNewUnitsDrawerClose = () => {
-        setOpenDrawer(false);
-    };
-
-    const [selectedOptions, setSelectedOptions] = useState([]);
-
-
-
-    const handleChange = (event) => {
-        const value = event.target.value;
-        const selectedOption = options.find(option => option.tagColour === value);
-        setSelectedOption(selectedOption);
-    };
-
-    const generateOptions = (inputValue) => {
-        return colors.map((tagColour, index) => ({
-            value: `${inputValue.toLowerCase()}-${index}`,
-            tagName: inputValue,
-            tagColour: tagColour,
-        }));
-    };
-
-    const selectWidth = inputValue ? `${inputValue.length * 5 + 40}px` : '';
-    const handleInputChange = (inputValue) => {
-        setInputValue(inputValue);
-        console.log(inputValue)
-        const newOptions = generateOptions(inputValue);
-        setOptions(newOptions);
-    };
-
-    // Initialize IndexedDB
-    const initDB = async () => {
-        return openDB('MyDatabase', 1, {
-            upgrade(db) {
-                if (!db.objectStoreNames.contains('storeName')) {
-                    db.createObjectStore('storeName', { keyPath: 'id', autoIncrement: true });
-                }
-            },
-        });
-    };
-
-    // Fetch items from IndexedDB
-    const fetchItems = async () => {
-        const db = await initDB();
-        const allItems = await db.getAll('storeName');
-        const allOptions = allItems.map(item => item.content); // Extract the content from IndexedDB items
-        //  setOptions(prevOptions => [...prevOptions, ...allOptions]); // Merge with existing options
-        setOptions(allOptions); // Update the options state
-        setUnits(allItems);
-    };
-
-    const handleAddOption = async () => {
-        if (inputValue.trim() && selectedOption) {
-            const db = await initDB();
-            const newEntry = {
-                content: inputValue, // Unit name
-                tagColour: selectedOption.tagColour, // Selected color
-            };
-            await db.add("storeName", newEntry); // Save to IndexedDB
-            setInputValue(""); // Clear the input
-            setSelectedOption(null); // Clear the selected option
-            await fetchItems(); // Refresh options from IndexedDB
-            exportAndMergeData(); // Trigger export if needed
-        } else {
-            console.error("Input value or color not selected!");
-        }
-    };
-
-    // Define a color palette
-    const colorMap = ["primary", "secondary", "error", "warning", "success"];
-
-
-    const exportAndMergeData = async () => {
-        try {
-            const db = await initDB();
-
-            // Fetch all items from IndexedDB
-            const allItems = await db.getAll("storeName");
-
-            // Merge with the original `optiondata` (ensure it's structured properly)
-            const mergedData = allItems.map((item, index) => ({
-                id: index + 1, // Generate a unique ID
-                content: item.content, // Use the content field from the item
-            }));
-
-            // Convert to JSON and create a file
-            const json = JSON.stringify(mergedData, null, 2); // Pretty-printed JSON
-            const blob = new Blob([json], { type: "application/json" });
-
-            // Trigger download
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = "optiondata.json";
-            link.click();
-        } catch (error) {
-            console.error("Error exporting and merging data:", error);
-        }
-    };
-
-    const handleDeleteOption = async (option) => {
-        try {
-            const db = await initDB();
-
-            
-            const allItems = await db.getAll('storeName');
-
-          
-            const itemToDelete = allItems.find((item) => item.content === option);
-
-            if (itemToDelete) {
-               
-                await db.delete('storeName', itemToDelete.id);
-
-               
-                const updatedOptions = options.filter((item) => item !== option);
-                setOptions(updatedOptions);
-
-                console.log(`Deleted option: ${option}`);
-
-                
-                exportAndMergeData();
-            } else {
-                console.log("Option not found in IndexedDB");
-            }
-        } catch (error) {
-            console.error("Error deleting option:", error);
-        }
-    };
+    const [unitTypes, setUnitTypes] = useState([]);
+    const [parkingTypes, setParkingTypes] = useState([]);
+    const [wings, setWings] = useState([]); // Store Wings
+    const [units, setUnits] = useState([]); // Store Units
+    const [unitTypes2, setUnitTypes2] = useState([]); // Store all Unit Types
+    const [parkings, setParkings] = useState([]);
 
     useEffect(() => {
-        fetchItems();
-
+        fetchWings();
+        fetchUnits();
+        fetchParkings();
+        fetchUnitTypes();
+        fetchParkingTypes();
     }, []);
 
-    const [units, setUnits] = useState([]);
+    // Define missing state variables
+    const [wingForm, setWingForm] = useState({
+        _id: '',
+        name: '',
+        totalUnits: '',
+        unitTypes: '',
+        numberOfFloors: '',
+        totalParkings: '',
+        parkingType: '',
+    });
+
+    const [unitForm, setUnitForm] = useState({
+        _id: '',
+        name: '',
+        area: '',
+        propertyType: '',
+        unit: '',
+    });
+
+    const [parkingForm, setParkingForm] = useState({
+        _id: '',
+        parkingType: '',
+        parkingArea: '',
+        location: '',
+        slotsAvailable: '',
+        unit:''
+    });
+
+    useEffect(() => {
+        fetchWings();
+        fetchUnits();
+        fetchUnitTypes();
+        fetchParkingTypes();
+    }, []);
+
+    const fetchWings = async () => {
+        try {
+            const response = await fetch('http://localhost:8001/wings');
+            const data = await response.json();
+            setWings(data);
+        } catch (error) {
+            console.error("Error fetching wings:", error);
+        }
+    };
+
+    const fetchUnits = async () => {
+        try {
+            const response = await fetch('http://localhost:8001/unitType');
+            const data = await response.json();
+            setUnits(data);
+        } catch (error) {
+            console.error("Error fetching units:", error);
+        }
+    };
+    const fetchParkings = async () => {
+        try {
+            const response = await fetch('http://localhost:8001/Parking');
+            const data = await response.json();
+            setParkings(data);
+        } catch (error) {
+            console.error("Error fetching parking:", error);
+        }
+    };
+
+    const fetchUnitTypes = async () => {
+        try {
+            const response = await fetch('http://localhost:8001/UnitType');
+            const data = await response.json();
+            setUnitTypes(data);
+        } catch (error) {
+            console.error("Error fetching unit types:", error);
+        }
+    };
+
+    const fetchParkingTypes = async () => {
+        try {
+            const response = await fetch('http://localhost:8001/Parking');
+            const data = await response.json();
+            setParkingTypes(data);
+        } catch (error) {
+            console.error("Error fetching parking types:", error);
+        }
+    };
+
+    const handleDeleteWing = async (id) => {
+        const isConfirmed = window.confirm("Are you sure you want to delete this wing?");
+        if (!isConfirmed) return;
+    
+        try {
+            await fetch(`http://localhost:8001/wings/${id}`, { method: 'DELETE' });
+            setWings(wings.filter((wing) => wing._id !== id));
+        } catch (error) {
+            console.error("Error deleting wing:", error);
+        }
+    };
+    
+    const handleDeleteUnit = async (id) => {
+        const isConfirmed = window.confirm("Are you sure you want to delete this unit?");
+        if (!isConfirmed) return;
+    
+        try {
+            await fetch(`http://localhost:8001/unitType/${id}`, { method: 'DELETE' });
+            setUnits(units.filter((unit) => unit._id !== id));
+        } catch (error) {
+            console.error("Error deleting unit:", error);
+        }
+    };
+    
+    const handleDeleteParking = async (id) => {
+        const isConfirmed = window.confirm("Are you sure you want to delete this parking?");
+        if (!isConfirmed) return;
+    
+        try {
+            await fetch(`http://localhost:8001/Parking/${id}`, { method: 'DELETE' });
+            fetchParkings();
+        } catch (error) {
+            console.error("Error deleting parking:", error);
+        }
+    };
+    
+
+    const handleSubmit = async (endpoint, formData, resetForm) => {
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+
+            alert("Data submitted successfully!");
+            resetForm(); // Reset form fields after submission
+        } catch (error) {
+            console.error("Error submitting data:", error);
+            alert("Failed to submit data.");
+        }
+    };
 
 
-    //for table
-    const columns = [
-        {
-            accessorKey: 'id', 
-            header: 'Sr.no',
-            Cell: ({ row }) => row.index + 1, 
-        },
-        {
-            accessorKey: 'content', // Field from data
-            header: 'Unit Name',
-            Cell: ({ cell, row }) => (
-                <Chip
-                    label={cell.getValue()}
-                    sx={{
-                        backgroundColor: row.original.tagColour,
-                        color: '#fff',
-                        fontWeight: 'bold',
-                    }}
-                />
-            ),
-        },
+    const handleUpdateWing = async () => {
+        try {
+            await fetch(`http://localhost:8001/wings/${wingForm._id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(wingForm),
+            });
+            fetchWings();
+            setOpenWingDrawer(false);
+        } catch (error) {
+            console.error("Error updating wing:", error);
+        }
+    };
 
-        {
-            accessorKey: 'actions',
-            header: 'Actions',
-            Cell: ({ row }) => (
-                <IconButton
-                    onClick={() => handleDeleteOption(row.original.content)}
-                    color="error"
-                >
-                    <DeleteIcon />
-                </IconButton>
-            ),
-        },
-    ];
+    const handleUpdateUnit = async () => {
+        try {
+            await fetch(`http://localhost:8001/unitType/${unitForm._id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(unitForm),
+            });
+            fetchUnits();
+            setOpenUnitDrawer(false);
+        } catch (error) {
+            console.error("Error updating unit:", error);
+        }
+    };
 
+    const handleUpdateParking = async () => {
+        console.log(parkingForm)
+        try {
+            await fetch(`http://localhost:8001/Parking/${parkingForm._id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(parkingForm),
+            });
+            fetchParkings();
+            setOpenParkingDrawer(false);
+        } catch (error) {
+            console.error("Error updating parking:", error);
+        }
+    };
+
+
+
+    const handleEditWing = (wing) => {
+        setWingForm({ ...wing });
+        setEditMode(true);
+        setOpenWingDrawer(true);
+    };
+
+    const handleEditUnit = (unit) => {
+        setUnitForm({ ...unit });
+        setEditMode(true);
+        setOpenUnitDrawer(true);
+    };
+
+    const handleEditParking = (parking) => {
+        setParkingForm({ ...parking });
+        setEditMode(true);
+        setOpenParkingDrawer(true);
+    };
+
+    // Function to get Unit Type Names by ID
+    const getUnitTypeNames = (unitTypeIds) => {
+        if (!unitTypeIds) return "Unknown";
+        return unitTypeIds.map((id) => {
+            const unitType = unitTypes.find((ut) => ut._id === id);
+            return unitType ? unitType.name : "Unknown";
+        }).join(', ');
+    };
+
+    // Function to get Parking Type Name by ID
+    const getParkingTypeName = (parkingTypeId) => {
+        if (!parkingTypeId) return "Unknown";
+        const parkingType = parkingTypes.find((pt) => pt._id === parkingTypeId);
+        return parkingType ? parkingType.parkingType : "Unknown";
+    };
     return (
         <Box>
-            <Typography variant='h4' textAlign={"center"} >Structure Details</Typography>
+            <Typography variant='h4' textAlign={"center"}>Structure Details</Typography>
             <Box display={'flex'} gap={5}>
-                <Button
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                    onClick={handlefindMemberDrawerOpen}
-                >
+                <Button variant="contained" startIcon={<AddIcon />} onClick={() => {
+                    setOpenWingDrawer(true); setEditMode(false); setWingForm({
+                        name: '',
+                        totalUnits: '',
+                        unitTypes: '',
+                        numberOfFloors: '',
+                        totalParkings: '',
+                        parkingType: '',
+                    })
+                }}>
                     Wing
                 </Button>
 
-
-                <Button
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                    onClick={handleNewUnitsDrawerOpen}
-                >
+                <Button variant="contained" startIcon={<AddIcon />} onClick={() => {
+                    setOpenUnitDrawer(true); setEditMode(false); setUnitForm({
+                        name: '',
+                        area: '',
+                        propertyType: '',
+                        unit: '',
+                    })
+                }}>
                     Units
+                </Button>
+
+                <Button variant="contained" startIcon={<AddIcon />} onClick={() => {
+                    setOpenParkingDrawer(true); setEditMode(false); setParkingForm({
+                        parkingType: '',
+                        parkingArea: '',
+                        unit: '',
+                    })
+                }}>
+                    Parking
                 </Button>
             </Box>
 
 
-            <Paper>
-                <Box mt={2} display={'flex'} gap={4} p={2} >
-
-                    {CardData.slice(0, 4).map((item) => (
-                        <Card sx={{ maxWidth: 200, position: 'relative', height: 230 }}>
-                            <CardMedia
-                                sx={{ height: 80 }}
-                                image={img}
-                                title="green iguana"
-                            />
-                            <BorderColorIcon
-                                sx={{
-                                    position: 'absolute',
-                                    top: 10,
-                                    right: 10,
-                                    color: 'Black',
-                                    cursor: 'pointer',
-                                }}
-                            />
-                            <CardContent>
-                                <Typography gutterBottom variant="h5" component="div">
-                                    {item.NameOfWings}
-                                </Typography>
-                                
-
-                                <Typography variant="body2" color="text.secondary" sx={{ marginRight: 'auto' }}>
-                                    No of Wings: {item.NoOfWings}
-                                </Typography>
-
-                                <Typography variant="body2" color="text.secondary" sx={{ marginRight: 'auto' }}>
-                                    Type Of Units: {item.Typeofunits}
-                                </Typography>
-                                
-                            </CardContent>
-                            <CardActions>
-                                <Box>
-                                    <Button size="small">Edit</Button>
-                                    <Button size="small">Delete</Button>
-                                </Box>
-                            </CardActions>
-                        </Card>
-                    ))}
-                </Box>
-            </Paper>
-
-
-
-
-            <Paper>
-                <Box mt={5} display={'flex'} gap={4} p={2}>
-                    {unitcardData.map((item) => (
-                        <Card sx={{ maxWidth: 200, position: 'relative', height: 230 }}>
-                            <CardMedia
-                                sx={{ height: 80 }}
-                                image={img2}
-                                title="green iguana"
-                            />
-                            <BorderColorIcon
-                                sx={{
-                                    position: 'absolute',
-                                    top: 10,
-                                    right: 10,
-                                    color: 'Black',
-                                    cursor: 'pointer',
-                                }}
-                            />
-                            <CardContent>
-                                <Typography gutterBottom variant="h5" component="div">
-                                    {item.Tittle}
-                                </Typography>
-
-                                <Typography variant="body2" color="text.secondary">
-                                    Type of Unit: {item.TypeOfUnit}
-                                </Typography>
-                                {/* <Typography variant="body2" color="text.secondary" sx={{ marginRight: 'auto' }}>
-                                    No of Unit: {item.NoOfunits}
+            <Box mt={2}>
+                <Typography variant="h5" mb={2}>Wings</Typography>
+                <Grid container spacing={3}>
+                    {wings.map((wing) => (
+                        <Grid item xs={2} sm={2} md={2} key={wing._id}>
+                            <Card sx={{ maxWidth: 200, boxShadow: 3 }}>
+                                <CardContent>
+                                    <Typography gutterBottom variant="h6">{wing.name}</Typography>
+                                    <Typography variant="body2" color="textSecondary">
+                                        <b>Total Units:</b> {wing.totalUnits}
+                                    </Typography>
+                                    <Typography variant="body2" color="textSecondary">
+                                        <b>Unit Types:</b> {getUnitTypeNames(wing.unitTypes)}
+                                    </Typography>
+                                    <Typography variant="body2" color="textSecondary">
+                                        <b>Total Parkings:</b> {wing.totalParkings}
+                                    </Typography>
+                                    {/* <Typography variant="body2" color="textSecondary">
+                                    <b>Parking Type:</b> {getParkingTypeName(wing.parkingType)}
                                 </Typography> */}
-                            </CardContent>
-                            <CardActions>
-                                <Box>
-                                    <Button size="small">Edit</Button>
-                                    <Button size="small">Delete</Button>
-                                </Box>
-                            </CardActions>
-                        </Card>
+                                </CardContent>
+                                <CardActions>
+                                    <Button onClick={() => handleEditWing(wing)}>Edit</Button>
+                                    <Button onClick={() => handleDeleteWing(wing._id)}>Delete</Button>
+                                </CardActions>
+                            </Card>
+                        </Grid>
                     ))}
+                </Grid>
+            </Box>
+
+            {/* Display Units as Cards */}
+            <Box mt={5}>
+                <Typography variant="h5" mb={2}>Units</Typography>
+                <Grid container>
+                    {units.map((unit) => (
+                        <Grid item xs={2} sm={2} md={2} key={unit._id}>
+                            <Card sx={{ maxWidth: 200, boxShadow: 3 }}>
+                                <CardContent>
+                                    <Typography gutterBottom variant="h6">{unit.name}</Typography>
+                                    <Typography variant="body2" color="textSecondary">
+                                        <b>Area:</b> {unit.area} {unit.unit}.
+                                    </Typography>
+                                    <Typography variant="body2" color="textSecondary">
+                                        <b>Type:</b> {unit.propertyType}
+                                    </Typography>
+                                </CardContent>
+                                <CardActions>
+                                    <Button onClick={() => handleEditUnit(unit)}>Edit</Button>
+                                    <Button onClick={() => handleDeleteUnit(unit._id)}>Delete</Button>
+                                </CardActions>
+                            </Card>
+                        </Grid>
+                    ))}
+                </Grid>
+                <Box mt={5}>
+                    <Typography variant="h5">Parking</Typography>
+                    <Grid container>
+                        {parkings.map((parking) => (
+                            <Grid item xs={2} sm={2} md={2} key={parking._id}>
+                                <Card sx={{ maxWidth: 200, boxShadow: 3 }}>
+                                    <CardContent>
+                                        <Typography gutterBottom variant="h6">{parking.parkingType}</Typography>
+                                        <Typography variant="body2"><b>Parking Area:</b> {parking.parkingArea} {parking.unit} .</Typography>
+                                    </CardContent>
+                                    <CardActions>
+                                        <Button onClick={() => handleEditParking(parking)}>Edit</Button>
+                                        <Button onClick={() => handleDeleteParking(parking._id)}>Delete</Button>
+                                    </CardActions>
+                                </Card>
+                            </Grid>
+                        ))}
+                    </Grid>
                 </Box>
-            </Paper>
+            </Box>
 
 
-
-
-            <Drawer
-                anchor="right"
-                open={Open}
-                onClose={handlefindMemberDrawerClose}
-                PaperProps={{
-                    sx: { width: '40%' },
-                }}
-            >
+            {/* Wing Drawer */}
+            <Drawer anchor="right" open={OpenWingDrawer} onClose={() => setOpenWingDrawer(false)} PaperProps={{ sx: { width: '40%' } }}>
                 <Box sx={{ padding: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <Typography m={2} variant="h6"><b>Wing Details</b></Typography>
-                    <CloseIcon sx={{ cursor: 'pointer' }} onClick={handlefindMemberDrawerClose} />
+                    <Typography variant="h6"><b>Wing Details</b></Typography>
+                    <CloseIcon sx={{ cursor: 'pointer' }} onClick={() => setOpenWingDrawer(false)} />
                 </Box>
                 <Divider />
 
+                <Box p={2}>
+                    <TextField label="Wing Name" fullWidth size="small" value={wingForm.name} onChange={(e) => setWingForm({ ...wingForm, name: e.target.value })} />
+                    <TextField label="Total Units" fullWidth size="small" sx={{ mt: 2 }} value={wingForm.totalUnits} onChange={(e) => setWingForm({ ...wingForm, totalUnits: e.target.value })} />
+                    <TextField label="Number of Floors" fullWidth size="small" sx={{ mt: 2 }} value={wingForm.numberOfFloors} onChange={(e) => setWingForm({ ...wingForm, numberOfFloors: e.target.value })} />
 
-                <Box>
-                    <Box m={2}>
-                        <Typography>No Of Floors</Typography>
-                        <TextField size="small" margin="normal" placeholder='No Of Units' fullWidth />
-                    </Box>
+                    {/* User-defined Unit Type */}
+                    <FormControl fullWidth sx={{ mt: 2 }}>
+                        <InputLabel>Unit Types</InputLabel>
+                        <Select
+                            value={wingForm.unitTypes}
+                            onChange={(e) => setWingForm({ ...wingForm, unitTypes: e.target.value })}
+                            onOpen={fetchUnitTypes} // Fetch data when dropdown is clicked
+                        >
+                            <MenuItem value=""><em>Select Unit Type</em></MenuItem>
+                            {unitTypes.map((unit) => (
+                                <MenuItem key={unit._id} value={unit._id}>
+                                    {unit.name}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                    <TextField label="Total Parkings" fullWidth size="small" sx={{ mt: 2 }} value={wingForm.totalParkings} onChange={(e) => setWingForm({ ...wingForm, totalParkings: e.target.value })} />
 
+                    {/* User-defined Parking Type */}
+                    <FormControl fullWidth sx={{ mt: 2 }}>
+                        <InputLabel>Parking Type</InputLabel>
+                        <Select
+                            value={wingForm.parkingType}
+                            onChange={(e) => setWingForm({ ...wingForm, parkingType: e.target.value })}
+                            onOpen={fetchParkingTypes} // Fetch data when dropdown is clicked
+                        >
+                            <MenuItem value=""><em>Select Parking Type</em></MenuItem>
+                            {parkingTypes.map((parking) => (
+                                <MenuItem key={parking._id} value={parking._id}>
+                                    {parking.parkingType}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                    <Box mt={3} display="flex" justifyContent="center">
+                        {
+                            editMode ?
+                                <Button variant='contained' onClick={handleUpdateWing}>Edit</Button>
+                                : <Button variant='contained' onClick={() => handleSubmit('http://localhost:8001/wings', wingForm, () => setWingForm({ name: '', totalUnits: '', unitTypes: '', numberOfFloors: '', totalParkings: '', parkingType: '' }))}>Add Wing</Button>
 
-                    <Box m={2}>
-                        <Typography>No Of Units</Typography>
-                        <TextField size="small" margin="normal" placeholder='No Of Units' fullWidth />
-                    </Box>
-
-
-
-                    <Box m={2}>
-                        <Typography>Name Of Wings</Typography>
-                        <TextField size="small" margin="normal" placeholder='Name Of Wings' fullWidth />
-                    </Box>
-
-
-                    <Box m={2}>
-                        <Typography>Type Of Unit</Typography>
-                        <Autocomplete
-                            multiple
-                            options={options}
-                            value={selectedOptions}
-                            onChange={(event, newValue) => setSelectedOptions(newValue)}
-                            renderTags={(value, getTagProps) =>
-                                value.map((option, index) => (
-                                    <Chip
-                                        label={option}
-                                        color={option.tagColour[index % option.tagColour.length]}
-                                        {...getTagProps({ index })}
-                                    />
-                                ))
-                            }
-                            renderInput={(params) => (
-                                <TextField {...params} variant="outlined" size="small" />
-                            )}
-                            renderOption={(props, option, { selected }) => {
-                                const index = options.indexOf(option);
-                                return (
-                                    <li {...props}>
-                                        <Chip
-                                            label={option}
-                                            color={colorMap[index % colorMap.length]}
-                                            style={{ marginRight: 8 }}
-                                        />
-                                    </li>
-                                );
-                            }}
-                        />
-                    </Box>
-
-                </Box>
-
-
-
-
-                <Box display={'flex'} alignItems={'center'} justifyContent={'center'} gap={2} mt={4}>
-                    <Box>
-                        <Button variant='contained'>Save </Button>
-                    </Box>
-
-                    <Box>
-                        <Button onClick={handlefindMemberDrawerClose} variant='outlined'>Cancel </Button>
+                        }
                     </Box>
                 </Box>
             </Drawer>
 
+            {/* Unit Drawer */}
+            <Drawer anchor="right" open={OpenUnitDrawer} onClose={() => setOpenUnitDrawer(false)} PaperProps={{ sx: { width: '40%' } }}>
+    <Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '15px', background: "#EEEEEE" }}>
+            <Typography variant="h6">Create Units</Typography>
+            <IoClose onClick={() => setOpenUnitDrawer(false)} style={{ cursor: 'pointer' }} />
+        </Box>
+        <Divider />
+        <Box p={2}>
+            <TextField 
+                label="Unit Name" 
+                fullWidth 
+                size="small" 
+                value={unitForm.name} 
+                onChange={(e) => setUnitForm({ ...unitForm, name: e.target.value })} 
+            />
 
-            {/* drawer for new units */}
-            <Drawer
-                anchor='right'
-                open={OpenDrawer}
-                onClose={handleNewUnitsDrawerClose}
-                PaperProps={{
-                    id: 'tag-drawer',
-                    sx: {
-                        borderRadius: isSmallScreen ? '0' : '10px 0 0 10px',
-                        width: isSmallScreen ? '100%' : 800,
-                        maxWidth: '100%',
-                        [theme.breakpoints.down('sm')]: {
-                            width: '100%',
-                        },
+            {/* Area Unit Dropdown (20%) and Area Input (80%) in a Row */}
+            <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
+                <FormControl sx={{ width: "20%" }}> 
+                    <Select 
+                        value={unitForm.unit} 
+                        onChange={(e) => setUnitForm({ ...unitForm, unit: e.target.value })} 
+                        displayEmpty
+                        size="small"
+                    >
+                        <MenuItem value=""><em>Unit</em></MenuItem>
+                        <MenuItem value="sq.ft">sq.ft</MenuItem>
+                        <MenuItem value="sq.mtr">sq.mtr</MenuItem>
+                    </Select>
+                </FormControl>
 
-                    }
-                }}
-            >
-                <Box sx={{ borderRadius: isSmallScreen ? '0' : '15px' }} role="presentation">
-                    <Box>
-                        <Box style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '15px', background: "#EEEEEE" }}>
-                            <Typography variant="h6" >
-                                Create Units
-                            </Typography>
-                            <IoClose onClick={handleNewUnitsDrawerClose} style={{ cursor: 'pointer' }} />
-                        </Box>
-                        <Divider />
-                        <Box sx={{ pr: 2, pl: 2, pt: 2 }}>
-                            <Box>
-                                <label className='tag-input-label'>Unit Name</label>
+                <TextField 
+                    label="Area" 
+                    fullWidth 
+                    size="small" 
+                    value={unitForm.area} 
+                    onChange={(e) => setUnitForm({ ...unitForm, area: e.target.value })} 
+                />
+            </Box>
 
-                                <TextField
-                                    placeholder="Unit Name"
-                                    value={inputValue}
-                                    onChange={(e) => handleInputChange(e.target.value)}
-                                    fullWidth
+            {/* Property Type Dropdown */}
+            <FormControl fullWidth sx={{ mt: 2 }}>
+                <Select 
+                    value={unitForm.propertyType} 
+                    onChange={(e) => setUnitForm({ ...unitForm, propertyType: e.target.value })} 
+                    displayEmpty
+                    size="small"
+                >
+                    <MenuItem value=""><em>Select Property Type</em></MenuItem>
+                    <MenuItem value="commercial">Commercial</MenuItem>
+                    <MenuItem value="residential">Residential</MenuItem>
+                </Select>
+            </FormControl>
 
-                                    size="small"
-                                    sx={{ backgroundColor: '#fff', mt: 1 }}
-
-
-                                />
-
-
-                            </Box>
-                            <Box sx={{ mt: 3 }}>
-                                <label className='tag-input-label'>Unit Color</label>
-                                <Select
-                                    value={selectedOption ? selectedOption.tagColour : ''}
-                                    onChange={handleChange}
-                                    labelId="color-select-label"
-                                    id="color-select"
-                                    size="small"
-                                    sx={{ width: '100%', marginTop: '10px', backgroundColor: '#fff' }}
-                                    MenuProps={{
-                                        PaperProps: {
-                                            sx: {
-                                                maxHeight: 200,
-                                                overflowY: 'auto',
-                                            },
-                                        },
-                                    }}
-                                >
-                                    {options.map((option) => (
-                                        <MenuItem key={option.value} value={option.tagColour}>
-                                            <Box sx={{
-                                                backgroundColor: option.tagColour,
-                                                color: "#fff",
-                                                borderRadius: "10px",
-                                                width: selectWidth,
-                                                textAlign: "center",
-                                                padding: "0.1rem 0.6rem",
-                                            }}>
-                                                {option.tagName}
-                                            </Box>
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-
-                            </Box>
+            {/* Submit or Update Button */}
+            <Box mt={3} display="flex" justifyContent="center">
+                {
+                    editMode ? 
+                        <Button variant='contained' onClick={handleUpdateUnit}>Save</Button> 
+                        : 
+                        <Button 
+                            variant='contained' 
+                            onClick={() => handleSubmit('http://localhost:8001/unitType', unitForm, () => setUnitForm({ name: '', area: '', propertyType: '', unit: '' }))}
+                        >
+                            Add Unit
+                        </Button>
+                }
+            </Box>
+        </Box>
+    </Box>
+</Drawer>
 
 
-                            <Box sx={{ mt: 3 }}>
-                                <Button variant='contained' onClick={handleAddOption}>Add Unit</Button>
-                            </Box>
+            {/* Parking Drawer */}
+            <Drawer anchor="right" open={OpenParkingDrawer} onClose={() => setOpenParkingDrawer(false)} PaperProps={{ sx: { width: '40%' } }}>
+                <Box p={2}>
+                    <Typography variant="h6"><b>Parking Details</b></Typography>
+                    <Divider sx={{ mb: 2 }} />
 
+                    <TextField label="Parking Type" fullWidth size="small" sx={{ mt: 2 }} value={parkingForm.parkingType} onChange={(e) => setParkingForm({ ...parkingForm, parkingType: e.target.value })} />
+                  
+                    <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
+                <FormControl sx={{ width: "20%" }}> 
+                    <Select 
+                        value={parkingForm.unit} 
+                        onChange={(e) => setParkingForm({ ...parkingForm, unit: e.target.value })} 
+                        displayEmpty
+                        size="small"
+                    >
+                        <MenuItem value=""><em>Unit</em></MenuItem>
+                        <MenuItem value="sq.ft">sq.ft</MenuItem>
+                        <MenuItem value="sq.mtr">sq.mtr</MenuItem>
+                    </Select>
+                </FormControl>
 
+                <TextField 
+                    label="Parking Area" 
+                    fullWidth 
+                    size="small" 
+                    value={parkingForm.parkingArea}
+                     onChange={(e) => setParkingForm({ ...parkingForm, parkingArea: e.target.value })}
+                />
+            </Box>
 
-                            <Box sx={{ mt: 4 }} >
-                                <MaterialReactTable
-                                    columns={columns}
-                                    data={units}
-                                    enableColumnFilters={false}
-                                    enablePagination={true}
-                                    enableSorting={true}
-                                    muiTableContainerProps={{
-                                        sx: { maxHeight: '400px' },
-                                    }}
-                                />
-                            </Box>
+                    <Box mt={3} display="flex" justifyContent="center">
+                        {
+                            editMode ?
+                                <Button variant='contained' onClick={handleUpdateParking}>Edit</Button>
+                                : <Button variant='contained' onClick={() => handleSubmit('http://localhost:8001/parking', parkingForm, () => setParkingForm({ parkingType: '', parkingArea: '', unit: '' }))}>Save</Button>
 
-                        </Box>
+                        }
                     </Box>
                 </Box>
             </Drawer>
         </Box>
+    );
+};
 
-
-    )
-}
-
-export default Settings
-
-
-
-
+export default Settings;

@@ -1,13 +1,113 @@
-import React, { useMemo, useState } from 'react';
-import { Alert, useMediaQuery, Box, Button, Typography, TextField, Drawer, Divider, FormControl, Select,  MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
-import { MaterialReactTable, } from 'material-react-table';
+import React, { useMemo, useState, useEffect } from 'react';
+import {
+  Alert,
+  useMediaQuery,
+  Box,
+  Grid,
+  Button,
+  Typography,
+  TextField,
+  Drawer,
+  Divider,
+  FormControl,
+  Select,
+  MenuItem,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  InputLabel,
+} from '@mui/material';
+import { MaterialReactTable } from 'material-react-table';
 import CloseIcon from '@mui/icons-material/Close';
-import { useTheme } from "@mui/material/styles";
-import propertydata from '../Property/propertydata.json'
+import CloudUploadIcon from '@mui/icons-material/Close';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { useTheme } from '@mui/material/styles';
+import axios from 'axios';
+
 const Property = () => {
   const theme = useTheme();
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
+  const [propertyData, setPropertyData] = useState([]); // State to store property data
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false); // State for drawer
+  const [selectedProperty, setSelectedProperty] = useState(null); // State to store selected property for edit/view
+  const [isEditMode, setIsEditMode] = useState(false); // State to toggle edit mode
+
+  // Fetch property data from API
+  useEffect(() => {
+    fetchPropertyData();
+  }, []);
+
+  const fetchPropertyData = async () => {
+    try {
+      const response = await axios.get('http://localhost:8001/Property/getAll');
+      console.log('Fetched Data:', response.data.properties); // Add this line
+      setPropertyData(response.data.properties);
+    } catch (error) {
+      console.error('Error fetching property data:', error);
+    }
+  };
+
+  const handleSubmit = async (formData) => {
+    try {
+      const data = new FormData();
+
+      // Append non-file fields
+      Object.keys(formData).forEach((key) => {
+        if (key !== "leaseDeedExecutionDoc") {
+          data.append(key, formData[key]);
+        }
+      });
+
+      // Append the file if it exists
+      if (formData.leaseDeedExecutionDoc) {
+        data.append("leaseDeedExecutionDoc", formData.leaseDeedExecutionDoc);
+      }
+
+      if (isEditMode) {
+        // Update existing property
+        await axios.put(`http://localhost:8001/Property/${formData.id}`, data, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      } else {
+        // Add new property
+        await axios.post("http://localhost:8001/Property/create", data, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      }
+
+      fetchPropertyData(); // Refresh data after submission
+      setIsDrawerOpen(false); // Close the drawer
+      setSelectedProperty(null); // Reset selected property
+      setIsEditMode(false); // Reset edit mode
+    } catch (error) {
+      console.error("Error submitting property data:", error);
+    }
+  };
+
+
+  // Handle delete property
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`http://localhost:8001/Property/${id}`); // Replace with your API endpoint
+      fetchPropertyData(); // Refresh data after deletion
+    } catch (error) {
+      console.error('Error deleting property:', error);
+    }
+  };
+
+  // Handle row click to view/edit property
+  const handleRowClick = (row) => {
+    setSelectedProperty(row.original); // Set selected property
+    setIsDrawerOpen(true); // Open the drawer
+    setIsEditMode(true); // Enable edit mode
+  };
+
+  // Columns for the table
   const columns = useMemo(() => {
     return [
       {
@@ -21,22 +121,22 @@ const Property = () => {
         size: 150,
       },
       {
-        accessorKey: 'leasedeedExecuted',
+        accessorKey: 'leaseDeedExecution',
         header: 'Lease Deed Executed',
         size: 150,
       },
       {
-        accessorKey: 'LeasePeriod',
+        accessorKey: 'leasePeriod',
         header: 'Lease Period',
         size: 150,
       },
       {
-        accessorKey: 'LeaseRentPremium',
+        accessorKey: 'leaseRentPremium',
         header: 'Lease Rent Premium(Rs)',
         size: 250,
       },
       {
-        accessorKey: 'CTS',
+        accessorKey: 'CTSNo',
         header: 'CTS No',
         size: 200,
       },
@@ -46,426 +146,651 @@ const Property = () => {
         size: 150,
       },
       {
-        accessorKey: 'PlotNo',
+        accessorKey: 'plotNo',
         header: 'Plot No',
         size: 150,
       },
       {
-        accessorKey: 'PloatArea',
-        header: 'Ploat Area',
+        accessorKey: 'plotArea',
+        header: 'Plot Area',
         size: 150,
       },
       {
-        accessorKey: 'BoundaryEast',
+        accessorKey: 'onEast',
         header: 'Boundary East',
         size: 150,
       },
       {
-        accessorKey: 'BoundaryWest',
+        accessorKey: 'onWest',
         header: 'Boundary West',
         size: 150,
       },
       {
-        accessorKey: 'BoundaryNorth',
+        accessorKey: 'onNorth',
         header: 'Boundary North',
         size: 200,
       },
       {
-        accessorKey: 'BoundarySouth',
+        accessorKey: 'onSouth',
         header: 'Boundary South',
         size: 200,
       },
       {
-        accessorKey: 'PropertyTaxPremiumBill',
+        accessorKey: 'propertyTaxPremiumGSTINBills',
         header: 'Property Tax Premium GSTIN Bill',
         size: 300,
       },
       {
-        accessorKey: 'WaterBillGenrationDates',
-        header: 'Water Bill Genration Dates',
+        accessorKey: 'waterBillGenerationDates',
+        header: 'Water Bill Generation Dates',
         size: 250,
       },
-
       {
-        accessorKey: 'ElectricitySupplyServiceProvider',
-        header: 'Electricity Supply ServiceProvider',
+        accessorKey: 'electricitySupplyServiceProvider',
+        header: 'Electricity Supply Service Provider',
         size: 250,
       },
-
       {
-        accessorKey: 'ElectricityBillGenrationDates',
-        header: 'Electricity Bill Genration Dates',
+        accessorKey: 'electricityBillGenrationDates',
+        header: 'Electricity Bill Generation Dates',
         size: 250,
       },
-
       {
         id: 'actions',
         header: 'Actions',
         size: 150,
-
+        Cell: ({ row }) => (
+          <Box>
+            <Button onClick={() => handleRowClick(row)}>Edit</Button>
+            <Button onClick={() => handleDelete(row.original._id)}>Delete</Button>
+          </Box>
+        ),
       },
     ];
   }, []);
 
-
-  // for drawer
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-
-
-  const handleDrawerClose = () => {
-    setIsDrawerOpen(false);
-  };
-
-  //for property details drawer
-
-  const [Open, setOpen] = useState(false);
-  const handlefindMemberDrawerOpen = () => {
-    setOpen(true);
-  };
-
-  const handlefindMemberDrawerClose = () => {
-    setOpen(false);
-  };
-
-
-
- 
   return (
     <Box>
       <Box sx={{ background: 'rgb(236 242 246)', borderRadius: '10px', p: 5, height: 'auto' }}>
         <Box textAlign={'center'}>
-          <Typography variant='h4'>Property</Typography>
+          <Typography variant="h4">Property</Typography>
         </Box>
         <Box sx={{ display: 'flex', gap: 3 }}>
-          {/* <Button variant="contained" onClick={handleDrawerOpen}> Structure Details</Button> */}
-          <Button variant='contained' onClick={handlefindMemberDrawerOpen}>Property Details</Button>
+          <Button variant="contained" onClick={() => setIsDrawerOpen(true)}>
+            Add Property
+          </Button>
         </Box>
 
         <Box mt={4}>
           <MaterialReactTable
             columns={columns}
-            data={propertydata}
-
+            data={propertyData}
             enableColumnOrdering
             enableColumnResizing
+            onRowClick={handleRowClick}
+            initialState={{
+              pagination: { pageIndex: 0, pageSize: 5 }, // Optional: Add pagination
+            }}
           />
         </Box>
-        {/* drawer for Structure Details  */}
+
+        {/* Drawer for Property Details */}
         <Drawer
           anchor="right"
           open={isDrawerOpen}
-          onClose={handleDrawerClose}
+          onClose={() => {
+            setIsDrawerOpen(false);
+            setSelectedProperty(null);
+            setIsEditMode(false);
+          }}
           PaperProps={{
-            sx: { width: '40%' },
+            sx: {
+              borderRadius: isSmallScreen ? '0' : '10px 0 0 10px',
+              width: isSmallScreen ? '100%' : '650px',
+              zIndex: 1000,
+            },
           }}
         >
           <Box sx={{ padding: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Typography m={2} variant="h6"><b>Structure Details</b></Typography>
-            <CloseIcon sx={{ cursor: 'pointer' }} onClick={handleDrawerClose} />
+            <Typography m={2} variant="h6">
+              <b>{isEditMode ? 'Edit Property' : 'Add Property'}</b>
+            </Typography>
+            <CloseIcon
+              sx={{ cursor: 'pointer' }}
+              onClick={() => {
+                setIsDrawerOpen(false);
+                setSelectedProperty(null);
+                setIsEditMode(false);
+              }}
+            />
           </Box>
           <Divider />
 
-
-          <Box>
-            <Box m={2}>
-              <Typography>No Of Units</Typography>
-              <TextField size="small" margin="normal" placeholder='No Of Units' fullWidth />
-            </Box>
-
-            <Box m={2}>
-              <Typography>No Of Wings</Typography>
-              <TextField size="small" margin="normal" placeholder='No Of Wings' fullWidth />
-            </Box>
-
-            <Box m={2}>
-              <Typography>Name Of Wings</Typography>
-              <TextField size="small" margin="normal" placeholder='Name Of Wings' fullWidth />
-            </Box>
-
-
-            <Box m={2}>
-              <Typography>Type Of Unit</Typography>
-              <FormControl fullWidth size="small" margin="normal">
-
-                <Select>
-                  <MenuItem value="Home">Flat</MenuItem>
-                  <MenuItem value="Office">Office</MenuItem>
-                  <MenuItem value="Office">Shop</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-
-            <Box m={2}>
-              <Typography>Unit Of Measurement of Flat Area</Typography>
-              <FormControl fullWidth size="small" margin="normal">
-
-                <Select>
-                  <MenuItem value="Home">Sqft</MenuItem>
-                  <MenuItem value="Office">Sqm</MenuItem>
-
-                </Select>
-              </FormControl>
-            </Box>
-
-          </Box>
-
-
-          <Box display={'flex'} alignItems={'center'} justifyContent={'center'} gap={2} mt={4}>
-            <Box>
-              <Button variant='contained'>Serch </Button>
-            </Box>
-
-            <Box>
-              <Button onClick={handleDrawerClose} variant='outlined'>Cancel </Button>
-            </Box>
-          </Box>
+          <PropertyForm
+            selectedProperty={selectedProperty}
+            onSubmit={handleSubmit}
+            onCancel={() => {
+              setIsDrawerOpen(false);
+              setSelectedProperty(null);
+              setIsEditMode(false);
+            }}
+          />
         </Drawer>
+      </Box>
+    </Box>
+  );
+};
+
+// Property Form Component
+const PropertyForm = ({ selectedProperty, onSubmit, onCancel }) => {
+  const [formData, setFormData] = useState(
+    selectedProperty || {
+      landAuthority: '',
+      leaseDeedExecution: '',
+      leaseDeedExecutionRegNum: '',
+      leaseDeedExecutionDoc: null,
+      leaseDeedExecutionDate: '',
+      leasePeriod: '',
+      leaseRentPremium: '',
+      CTSNo: '',
+      Village: '',
+      plotNo: '',
+      plotArea: '',
+      onEast: '',
+      onWest: '',
+      onNorth: '',
+      onSouth: '',
+      conveyanceDeed: '',
+      conveyanceDeedRegNum: '',
+      conveyanceDeedDate: '',
+      landConveyanceInNameOf: '',
+      nonAgricultureTax: '',
+      nATaxPremium: '',
+      propertyTaxAuthority: '',
+      propertyTaxNo: '',
+      propertyTaxPremium: '',
+      propertyTaxPremiumGSTINBills: '',
+      waterSupplyAuthority: '',
+      numOfWaterConnections: '',
+      waterConnectionNum: '',
+      waterBillGenerationDates: '',
+      waterBillGenerationDatesGSTINBills: '',
+      electricitySupplyServiceProvider: '',
+      numOfElectricityConnections: '',
+    }
+  );
+
+  const [fileUploaded, setFileUploaded] = useState(false);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData({ ...formData, leaseDeedExecutionDoc: file });
+      setFileUploaded(true); // Indicate a file is uploaded
+    }
+  };
+
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
 
 
-        {/* drawer for Property Details */}
-        <Drawer
-          anchor="right"
-          open={Open}
-          onClose={handlefindMemberDrawerClose}
-          PaperProps={{
-            sx: { borderRadius: isSmallScreen ? "0" : "10px 0 0 10px",
-              width: isSmallScreen ? "100%" : "650px",
-              zIndex: 1000, }, // Set the width here
-          }}
-        >
-          <Box sx={{ padding: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Typography m={2} variant="h6"><b>Property Details</b></Typography>
-            <CloseIcon sx={{ cursor: 'pointer' }} onClick={handlefindMemberDrawerClose} />
-          </Box>
-          <Divider />
+  return (
+    <Box>
+      <Box display="flex" alignItems="center" gap={2}>
+        <Grid container spacing={2} m={3}>
+          {/* Row 1 */}
+          <Grid item xs={6}>
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Land Authority</InputLabel>
+              <Select
+                name="landAuthority"
+                value={formData.landAuthority}
+                onChange={handleChange}
+              >
+                <MenuItem value="Private">Private</MenuItem>
+                <MenuItem value="FreeHold">FreeHold</MenuItem>
+                <MenuItem value="MHADA">MHADA</MenuItem>
+                <MenuItem value="CIDCO">CIDCO</MenuItem>
+                <MenuItem value="SRA">SRA</MenuItem>
+                <MenuItem value="BMC">BMC</MenuItem>
+                <MenuItem value="CollectorLand">Collector Land</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={6}>
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Lease Deed Execution</InputLabel>
+              <Select
+                name="leaseDeedExecution"
+                value={formData.leaseDeedExecution}
+                onChange={handleChange}
+              >
+                <MenuItem value="Yes">Yes</MenuItem>
+                <MenuItem value="No">No</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
 
+          {/* Row 2 */}
+          {formData.leaseDeedExecution === "Yes" && (
+            <>
+              <Grid item xs={6}>
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  label="Lease Deed Execution Reg Num"
+                  name="leaseDeedExecutionRegNum"
+                  value={formData.leaseDeedExecutionRegNum}
+                  onChange={handleChange}
+                />
+              </Grid>
 
-          <Box display="flex" alignItems="center" gap={2}>
-            <Box flex={1} m={2}>
-              <Box>
-                <Typography>Land Authority</Typography>
-                <FormControl fullWidth size="small" margin="normal">
+              {/* Enhanced File Attachment Section */}
+              <Grid item xs={6}>
+                <input
+                  type="file"
+                  id="file-upload"
+                  style={{ display: "none" }}
+                  onChange={handleFileChange}
+                />
+                {fileUploaded ? (
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <CheckCircleIcon color="success" />
+                    <Typography variant="body2">
+                      {formData.leaseDeedExecutionDoc.name}
+                    </Typography>
+                    <Button
+                      variant="outlined"
+                      onClick={() => document.getElementById("file-upload").click()}
+                    >
+                      Re-upload
+                    </Button>
+                  </Box>
+                ) : (
+                  <label htmlFor="file-upload">
+                    <Button
+                      variant="contained"
+                      component="span"
+                      startIcon={<CloudUploadIcon />}
+                      style={{ marginTop: "16px", marginBottom: "8px" }}
+                    >
+                      Upload Lease Deed Document
+                    </Button>
+                  </label>
+                )}
+              </Grid>
 
-                  <Select>
-                    <MenuItem value="Private">Private</MenuItem>
-                    <MenuItem value="FreeHold">FreeHold</MenuItem>
-                    <MenuItem value="MHADA">MHADA</MenuItem>
-                    <MenuItem value="CIDCO">CIDCO</MenuItem>
-                    <MenuItem value="SRA">SRA</MenuItem>
-                    <MenuItem value="BMC">BMC</MenuItem>
-                    <MenuItem value="CollectorLand">Collector Land</MenuItem>
+              <Grid item xs={6}>
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  label="Lease Deed Execution Date"
+                  name="leaseDeedExecutionDate"
+                  type="date"
+                  InputLabelProps={{ shrink: true }}
+                  value={formData.leaseDeedExecutionDate}
+                  onChange={handleChange}
+                />
+              </Grid>
+            </>
+          )}
 
-                  </Select>
-                </FormControl>
-              </Box>
+          {/* Row 3 */}
+          <Grid item xs={6}>
+            <TextField
+              fullWidth
+              margin="normal"
+              label="Lease Period"
+              name="leasePeriod"
+              value={formData.leasePeriod}
+              onChange={handleChange}
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              fullWidth
+              margin="normal"
+              label="Lease Rent Premium"
+              name="leaseRentPremium"
+              value={formData.leaseRentPremium}
+              onChange={handleChange}
+            />
+          </Grid>
 
-              <Box mt={1}>
-                <Typography>Lease Period</Typography>
-                <TextField size="small" margin="normal" placeholder="Lease Period" fullWidth />
-              </Box>
+          {/* Row 4 */}
+          <Grid item xs={6}>
+            <TextField
+              fullWidth
+              margin="normal"
+              label="CTS Number"
+              name="CTSNo"
+              value={formData.CTSNo}
+              onChange={handleChange}
+              required
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              fullWidth
+              margin="normal"
+              label="Village"
+              name="Village"
+              value={formData.Village}
+              onChange={handleChange}
+            />
+          </Grid>
 
-              <Box mt={1}>
-                <Typography>CTS No</Typography>
-                <TextField size="small" margin="normal" placeholder="CTS No" fullWidth />
-              </Box>
+          {/* Row 5 */}
+          <Grid item xs={6}>
+            <TextField
+              fullWidth
+              margin="normal"
+              label="Plot Number"
+              name="plotNo"
+              value={formData.plotNo}
+              onChange={handleChange}
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              fullWidth
+              margin="normal"
+              label="Plot Area"
+              name="plotArea"
+              value={formData.plotArea}
+              onChange={handleChange}
+            />
+          </Grid>
 
-              <Box mt={1}>
-                <Typography>Plot No</Typography>
-                <TextField size="small" margin="normal" placeholder="Plot No" fullWidth />
-              </Box>
+          {/* Row 6 */}
+          <Grid item xs={6}>
+            <TextField
+              fullWidth
+              margin="normal"
+              label="On East"
+              name="onEast"
+              value={formData.onEast}
+              onChange={handleChange}
+              required
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              fullWidth
+              margin="normal"
+              label="On West"
+              name="onWest"
+              value={formData.onWest}
+              onChange={handleChange}
+              required
+            />
+          </Grid>
 
-              <Typography><b>Boundary Details</b></Typography>
+          {/* Row 7 */}
+          <Grid item xs={6}>
+            <TextField
+              fullWidth
+              margin="normal"
+              label="On North"
+              name="onNorth"
+              value={formData.onNorth}
+              onChange={handleChange}
+              required
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              fullWidth
+              margin="normal"
+              label="On South"
+              name="onSouth"
+              value={formData.onSouth}
+              onChange={handleChange}
+              required
+            />
+          </Grid>
 
-              <Box mt={1}>
-                <Typography>On East</Typography>
-                <TextField size="small" margin="normal" placeholder="On East" fullWidth />
-              </Box>
-              <Box mt={1}>
-                <Typography>On North</Typography>
-                <TextField size="small" margin="normal" placeholder="On North" fullWidth />
-              </Box>
-              <Box mt={1}>
-                <Typography>Conveyance Deed in Favour of Society</Typography>
-                <FormControl fullWidth size="small" margin="normal" placeholder='Lease Deed Executed'>
+          {/* Row 8 */}
+          <Grid item xs={6}>
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Conveyance Deed</InputLabel>
+              <Select
+                name="conveyanceDeed"
+                value={formData.conveyanceDeed}
+                onChange={handleChange}
+              >
+                <MenuItem value="Yes">Yes</MenuItem>
+                <MenuItem value="No">No</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          {formData.conveyanceDeed === "Yes" && (
+            <>
+              <Grid item xs={6}>
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  label="Conveyance Deed Reg Num"
+                  name="conveyanceDeedRegNum"
+                  value={formData.conveyanceDeedRegNum}
+                  onChange={handleChange}
+                />
+              </Grid>
 
-                  <Select>
-                    <MenuItem value="Private">Yes</MenuItem>
-                    <MenuItem value="FreeHold">No</MenuItem>
-                  </Select>
-                </FormControl>
-              </Box>
+              <Grid item xs={6}>
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  label="Conveyance Deed Date"
+                  name="conveyanceDeedDate"
+                  type="date"
+                  InputLabelProps={{ shrink: true }}
+                  value={formData.conveyanceDeedDate}
+                  onChange={handleChange}
+                />
+              </Grid>
+            </>
+          )}
 
-              <Box mt={1}>
-                <Typography>NA Tax Premium Rs</Typography>
-                <TextField size="small" margin="normal" placeholder="NA Tax Premium Rs" fullWidth />
-              </Box>
+          {/* Row 9 */}
+          <Grid item xs={6}>
+            <TextField
+              fullWidth
+              margin="normal"
+              label="Land Conveyance In Name Of"
+              name="landConveyanceInNameOf"
+              value={formData.landConveyanceInNameOf}
+              onChange={handleChange}
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Non Agricultural Tax</InputLabel>
+              <Select
+                name="nonAgricultureTax"
+                value={formData.nonAgricultureTax}
+                onChange={handleChange}
+              >
+                <MenuItem value="Yes">Yes</MenuItem>
+                <MenuItem value="No">No</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
 
-              <Box mt={1}>
-                <Typography>Property Tax No</Typography>
-                <TextField size="small" margin="normal" placeholder="Property Tax No" fullWidth />
-              </Box>
+          {/* Row 10 */}
+          <Grid item xs={6}>
+            <TextField
+              fullWidth
+              margin="normal"
+              label="NA Tax Premium"
+              name="nATaxPremium"
+              value={formData.nATaxPremium}
+              onChange={handleChange}
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Property Tax Authority</InputLabel>
+              <Select
+                name="propertyTaxAuthority"
+                value={formData.propertyTaxAuthority}
+                onChange={handleChange}
+              >
+                {["BMC", "CIDCO", "PMC"].map((option) => (
+                  <MenuItem key={option} value={option}>
+                    {option}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
 
-              <Box mt={1}>
-                <Typography>Water Supply Authority</Typography>
-                <FormControl fullWidth size="small" margin="normal" placeholder='Lease Deed Executed'>
+          {/* Row 11 */}
+          <Grid item xs={6}>
+            <TextField
+              fullWidth
+              margin="normal"
+              label="Property Tax Number"
+              name="propertyTaxNo"
+              value={formData.propertyTaxNo}
+              onChange={handleChange}
+              required
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              fullWidth
+              margin="normal"
+              label="Property Tax Premium"
+              name="propertyTaxPremium"
+              value={formData.propertyTaxPremium}
+              onChange={handleChange}
+            />
+          </Grid>
 
-                  <Select>
-                    <MenuItem value="Private">BMC</MenuItem>
-                    <MenuItem value="FreeHold">CIDCO</MenuItem>
-                    <MenuItem value="FreeHold">PMC</MenuItem>
-                  </Select>
-                </FormControl>
-              </Box>
+          {/* Row 12 */}
+          <Grid item xs={6}>
+            <TextField
+              fullWidth
+              margin="normal"
+              label="Property Tax Premium GSTIN Bills"
+              name="propertyTaxPremiumGSTINBills"
+              value={formData.propertyTaxPremiumGSTINBills}
+              onChange={handleChange}
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Water Supply Authority</InputLabel>
+              <Select
+                name="waterSupplyAuthority"
+                value={formData.waterSupplyAuthority}
+                onChange={handleChange}
+              >
+                {["BMC", "CIDCO", "PMC"].map((option) => (
+                  <MenuItem key={option} value={option}>
+                    {option}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
 
+          {/* Row 13 */}
+          <Grid item xs={6}>
+            <TextField
+              fullWidth
+              margin="normal"
+              label="Number of Water Connections"
+              name="numOfWaterConnections"
+              value={formData.numOfWaterConnections}
+              onChange={handleChange}
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              fullWidth
+              margin="normal"
+              label="Water Connection Number"
+              name="waterConnectionNum"
+              value={formData.waterConnectionNum}
+              onChange={handleChange}
+            />
+          </Grid>
 
-              <Box mt={1}>
-                <Typography>Water Connection No</Typography>
-                <TextField size="small" margin="normal" placeholder="Water Connection No" fullWidth />
-              </Box>
+          {/* Row 14 */}
+          <Grid item xs={6}>
+            <TextField
+              fullWidth
+              margin="normal"
+              label="Water Bill Generation Dates"
+              name="waterBillGenerationDates"
+              value={formData.waterBillGenerationDates}
+              onChange={handleChange}
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              fullWidth
+              margin="normal"
+              label="Water Bill Generation Dates GSTIN Bills"
+              name="waterBillGenerationDatesGSTINBills"
+              value={formData.waterBillGenerationDatesGSTINBills}
+              onChange={handleChange}
+            />
+          </Grid>
 
-              <Box mt={1}>
-                <Typography>Electricity Supply Service Provider</Typography>
-                <FormControl fullWidth size="small" margin="normal" placeholder='Lease Deed Executed'>
+          {/* Row 15 */}
+          <Grid item xs={6}>
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Electricity Supply Service Provider</InputLabel>
+              <Select
+                name="electricitySupplyServiceProvider"
+                value={formData.electricitySupplyServiceProvider}
+                onChange={handleChange}
+              >
+                {["MAHADISC", "BEST", "TATA Power LTD", "Adani Electricity Mumbai LTD"].map((option) => (
+                  <MenuItem key={option} value={option}>
+                    {option}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              fullWidth
+              margin="normal"
+              label="Number of Electricity Connections"
+              name="numOfElectricityConnections"
+              value={formData.numOfElectricityConnections}
+              onChange={handleChange}
+            />
+          </Grid>
+        </Grid>
+      </Box>
 
-                  <Select>
-                    <MenuItem value="Private">MAHADISCOM</MenuItem>
-                    <MenuItem value="FreeHold">BEST</MenuItem>
-                    <MenuItem value="FreeHold">Tata Power Ltd</MenuItem>
-                    <MenuItem value="FreeHold">Adani Electricity Mumbai Ltd</MenuItem>
-                  </Select>
-                </FormControl>
-              </Box>
-
-              <Box mt={1}>
-                <Typography>Water Connection No</Typography>
-                <TextField size="small" margin="normal" placeholder="Water Connection No" fullWidth />
-              </Box>
-            </Box>
-
-
-
-
-
-
-
-
-            <Box flex={1} m={2}>
-              <Box>
-                <Typography>Lease Deed Executed</Typography>
-                <FormControl fullWidth size="small" margin="normal" placeholder='Lease Deed Executed'>
-
-                  <Select>
-                    <MenuItem value="Private">Yes</MenuItem>
-                    <MenuItem value="FreeHold">No</MenuItem>
-                  </Select>
-                </FormControl>
-              </Box>
-
-
-              <Box mt={1}>
-                <Typography>Lease Rent Premium Rs</Typography>
-                <TextField size="small" margin="normal" placeholder="Lease Rent Premium Rs" fullWidth />
-              </Box>
-
-              <Box mt={1}>
-                <Typography>Village</Typography>
-                <TextField size="small" margin="normal" placeholder="Village" fullWidth />
-              </Box>
-
-              <Box mt={1}>
-                <Typography>Plot Area</Typography>
-                <TextField size="small" margin="normal" placeholder="Plot Area" fullWidth />
-              </Box>
-
-              <Typography>&nbsp;</Typography>
-
-              <Box mt={1}>
-                <Typography>On West</Typography>
-                <TextField size="small" margin="normal" placeholder="On West" fullWidth />
-              </Box>
-
-              <Box mt={1}>
-                <Typography>On South</Typography>
-                <TextField size="small" margin="normal" placeholder="On South" fullWidth />
-              </Box>
-              <Box >
-                <Typography>Non Agricultural Tax</Typography>
-                <TextField size="small" margin="normal" placeholder="Non Agricultural Tax" fullWidth />
-              </Box>
-
-              <Box mt={1}>
-                <Typography>Property Tax Authority</Typography>
-                <FormControl fullWidth size="small" margin="normal" placeholder='Lease Deed Executed'>
-
-                  <Select>
-                    <MenuItem value="Private">BMC</MenuItem>
-                    <MenuItem value="FreeHold">CIDCO</MenuItem>
-                    <MenuItem value="FreeHold">PMC</MenuItem>
-                  </Select>
-                </FormControl>
-              </Box>
-
-              <Box mt={1}>
-                <Typography>Property Tax Premium GSTIN Bills</Typography>
-                <FormControl fullWidth size="small" margin="normal" placeholder='Lease Deed Executed'>
-
-                  <Select>
-                    <MenuItem value="Private">Yes</MenuItem>
-                    <MenuItem value="FreeHold">No</MenuItem>
-
-                  </Select>
-                </FormControl>
-              </Box>
-
-              <Box mt={1}>
-                <Typography>No of Water Connections</Typography>
-                <FormControl fullWidth size="small" margin="normal" placeholder='No of Water Connections'>
-
-                  <Select>
-                    <MenuItem value="Private">1</MenuItem>
-                    <MenuItem value="FreeHold">2</MenuItem>
-
-                  </Select>
-                </FormControl>
-              </Box>
-
-              <Box mt={1}>
-                <Typography>Water Bill Generation Dates</Typography>
-                <TextField size="small" margin="normal" placeholder="Water Bill Generation Dates" fullWidth />
-              </Box>
-
-              <Box mt={1}>
-                <Typography>No Electricity Connection</Typography>
-                <TextField size="small" margin="normal" placeholder="No Electricity Connection" fullWidth />
-              </Box>
-
-              <Box mt={1}>
-                <Typography>Water Bill Generation Dates GSTIN Bills</Typography>
-                <TextField size="small" margin="normal" placeholder="Water Bill Generation Dates GSTIN Bills" fullWidth />
-              </Box>
-
-            </Box>
-          </Box>
-
-
-
-
-          <Box display={'flex'} alignItems={'center'} justifyContent={'center'} gap={2} mt={4} mb={4}>
-            <Box>
-              <Button variant='contained'>Save </Button>
-            </Box>
-
-            <Box>
-              <Button onClick={handlefindMemberDrawerClose} variant='outlined'>Cancel </Button>
-            </Box>
-          </Box>
-        </Drawer>
-
-
+      <Box display={'flex'} alignItems={'center'} justifyContent={'center'} gap={2} mt={4} mb={4}>
+        <Box>
+          <Button variant="contained" onClick={handleFormSubmit}>
+            Save
+          </Button>
+        </Box>
+        <Box>
+          <Button onClick={onCancel} variant="outlined">
+            Cancel
+          </Button>
+        </Box>
       </Box>
     </Box>
   );
 };
 
 export default Property;
-
