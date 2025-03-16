@@ -23,7 +23,7 @@ import {
 } from '@mui/material';
 import { MaterialReactTable } from 'material-react-table';
 import CloseIcon from '@mui/icons-material/Close';
-import CloudUploadIcon from '@mui/icons-material/Close';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useTheme } from '@mui/material/styles';
 import axios from 'axios';
@@ -45,7 +45,7 @@ const Property = () => {
   const fetchPropertyData = async () => {
     try {
       const response = await axios.get('http://localhost:8001/Property/getAll');
-      console.log('Fetched Data:', response.data.properties); // Add this line
+      console.log('Fetched Data:', response.data.properties); // Log fetched data
       setPropertyData(response.data.properties);
     } catch (error) {
       console.error('Error fetching property data:', error);
@@ -70,11 +70,11 @@ const Property = () => {
 
       if (isEditMode) {
         // Update existing property
-        await axios.put(`http://localhost:8001/Property/${formData.id}`, data, {
+        await axios.put(`http://localhost:8001/Property/update/${formData._id}`, data, {
           headers: { "Content-Type": "multipart/form-data" },
         });
       } else {
-        // Add new property
+       console.log("Function Called")
         await axios.post("http://localhost:8001/Property/create", data, {
           headers: { "Content-Type": "multipart/form-data" },
         });
@@ -89,16 +89,21 @@ const Property = () => {
     }
   };
 
-
   // Handle delete property
   const handleDelete = async (id) => {
+    const isConfirmed = window.confirm("Are you sure you want to delete this property?");
+    if (!isConfirmed) return;
+  
     try {
-      await axios.delete(`http://localhost:8001/Property/${id}`); // Replace with your API endpoint
+      await axios.delete(`http://localhost:8001/Property/${id}`);
       fetchPropertyData(); // Refresh data after deletion
+      setIsDrawerOpen(false); // Close the drawer
+      setSelectedProperty(null); // Reset selected property
     } catch (error) {
       console.error('Error deleting property:', error);
     }
   };
+  
 
   // Handle row click to view/edit property
   const handleRowClick = (row) => {
@@ -191,8 +196,8 @@ const Property = () => {
         size: 250,
       },
       {
-        accessorKey: 'electricityBillGenrationDates',
-        header: 'Electricity Bill Generation Dates',
+        accessorKey: 'numOfElectricityConnections',
+        header: 'Number Of Electricity Connections',
         size: 250,
       },
       {
@@ -227,10 +232,10 @@ const Property = () => {
             data={propertyData}
             enableColumnOrdering
             enableColumnResizing
-            onRowClick={handleRowClick}
-            initialState={{
-              pagination: { pageIndex: 0, pageSize: 5 }, // Optional: Add pagination
-            }}
+            muiTableBodyRowProps={({ row }) => ({
+              onClick: () => handleRowClick(row),
+              sx: { cursor: 'pointer' },
+            })}
           />
         </Box>
 
@@ -274,6 +279,7 @@ const Property = () => {
               setSelectedProperty(null);
               setIsEditMode(false);
             }}
+            onDelete={handleDelete}
           />
         </Drawer>
       </Box>
@@ -282,7 +288,7 @@ const Property = () => {
 };
 
 // Property Form Component
-const PropertyForm = ({ selectedProperty, onSubmit, onCancel }) => {
+const PropertyForm = ({ selectedProperty, onSubmit, onCancel, onDelete }) => {
   const [formData, setFormData] = useState(
     selectedProperty || {
       landAuthority: '',
@@ -340,13 +346,11 @@ const PropertyForm = ({ selectedProperty, onSubmit, onCancel }) => {
     onSubmit(formData);
   };
 
-
   return (
     <Box>
       <Box display="flex" alignItems="center" gap={2}>
         <Grid container spacing={2} m={3}>
-          {/* Row 1 */}
-          <Grid item xs={6}>
+        <Grid item xs={6}>
             <FormControl fullWidth margin="normal">
               <InputLabel>Land Authority</InputLabel>
               <Select
@@ -392,7 +396,7 @@ const PropertyForm = ({ selectedProperty, onSubmit, onCancel }) => {
                 />
               </Grid>
 
-              {/* Enhanced File Attachment Section */}
+              {/* File Upload Section */}
               <Grid item xs={6}>
                 <input
                   type="file"
@@ -788,6 +792,13 @@ const PropertyForm = ({ selectedProperty, onSubmit, onCancel }) => {
             Cancel
           </Button>
         </Box>
+        {selectedProperty && (
+          <Box>
+            <Button onClick={() => onDelete(selectedProperty._id)} variant="contained" color="error">
+              Delete
+            </Button>
+          </Box>
+        )}
       </Box>
     </Box>
   );

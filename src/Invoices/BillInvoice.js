@@ -16,6 +16,10 @@ import {
   TableHead,
   TableRow,
   Paper,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import { MaterialReactTable } from 'material-react-table';
 import CloseIcon from '@mui/icons-material/Close';
@@ -27,6 +31,7 @@ import Textarea from '@mui/joy/Textarea';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { useTheme } from '@mui/material/styles';
 import { format, parseISO } from 'date-fns';
+import html2canvas from 'html2canvas';
 
 const BillInvoice = () => {
   const theme = useTheme();
@@ -36,6 +41,7 @@ const BillInvoice = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState(null);
+  const [organisation, setOrganisation] = useState({ SocietyName: '' });
 
   // State for form fields
   const [formValues, setFormValues] = useState({
@@ -48,7 +54,7 @@ const BillInvoice = () => {
     amtInWords: '',
   });
 
-  const [items, setItems] = useState([{ description: '', amount: '' }]);
+  const [DetailsData, setDetailsData] = useState([{ serviceId: '', amounts: '' }]);
   const [data, setData] = useState([]);
   const [memberOptions, setMemberOptions] = useState([
     { id: 1, name: 'John Doe' },
@@ -57,10 +63,14 @@ const BillInvoice = () => {
     { id: 4, name: 'Bob Brown' },
   ]);
 
+  // State for preview and report generation
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+
   // Fetch data from API
   useEffect(() => {
     fetchData();
     fetchMemberOptions();
+    fetchOrganisationData();
   }, []);
 
   // Fetch InvoiceHeader data
@@ -71,6 +81,16 @@ const BillInvoice = () => {
       setData(result);
     } catch (error) {
       console.error('Error fetching InvoiceHeader data:', error);
+    }
+  };
+
+  const fetchOrganisationData = async () => {
+    try {
+      const response = await fetch('http://localhost:8001/Organisation');
+      const result = await response.json();
+      setOrganisation(result); // Assuming the API returns an object with a `SocietyName` field
+    } catch (error) {
+      console.error('Error fetching organisation data:', error);
     }
   };
 
@@ -104,51 +124,75 @@ const BillInvoice = () => {
   // Handle row click for editing
   const handleRowClick = async (row) => {
     try {
-      const response = await fetch(`http://localhost:8001/InvoiceHeader/${row.id}`);
-      const itemsData = await response.json();
+      // Fetch InvoiceHeader data
+      const headerResponse = await fetch(`http://localhost:8001/InvoiceHeader/${row._id}`);
+      const headerData = await headerResponse.json();
+      console.log(row._id)
 
+      // Fetch InvoiceDetail data by invoiceId
+      const detailsResponse = await fetch(`http://localhost:8001/InvoiceDetail/InvoiceId/${row._id}`);
+      const detailsData = await detailsResponse.json();
+      console.log("Details Data = ", detailsData)
+
+      // Set form values from InvoiceHeader
+      setFormValues({
+        memberId: headerData.memberId || '',
+        invoiceNumber: headerData.invoiceNumber || '',
+        invoiceDate: headerData.invoiceDate ? parseISO(headerData.invoiceDate) : null,
+        period: headerData.period || '',
+        dueDate: headerData.dueDate ? parseISO(headerData.dueDate) : null,
+        narration: headerData.narration || '',
+        amtInWords: headerData.amtInWords || '',
+      });
+
+      // Ensure we correctly map `serviceIds` and `amounts`
+      if (detailsData.length > 0) {
+        const itemsData = detailsData.flatMap(detail =>
+          detail.serviceIds.map((serviceId, index) => ({
+            serviceId: serviceId,
+            amounts: detail.amounts[index] || '', // Match index to ensure correct mapping
+          }))
+        );
+        setDetailsData(itemsData);
+      } else {
+        setDetailsData([{ serviceId: '', amounts: '' }]); // Set default if no details found
+      }
+
+      // Set edit state
       setEditData(row);
       setIsEditing(true);
       setIsDrawerOpen(true);
-      setFormValues({
-        memberId: row.memberId || '',
-        invoiceNumber: row.invoiceNumber || '',
-        invoiceDate: row.invoiceDate ? parseISO(row.invoiceDate) : null,
-        period: row.period || '',
-        dueDate: row.dueDate ? parseISO(row.dueDate) : null,
-        narration: row.narration || '',
-        amtInWords: row.amtInWords || '',
-      });
-      setItems(itemsData || [{ description: '', amount: '' }]);
     } catch (error) {
-      console.error('Error fetching InvoiceDetail data:', error);
+      console.error('❌ Error fetching data:', error);
+      setDetailsData([{ serviceId: '', amounts: '' }]); // Set default value if there's an error
     }
   };
+
 
   // Handle form input changes
   const handleInputChange = (e, index) => {
     const { name, value } = e.target;
-    const updatedItems = [...items];
+    const updatedItems = [...DetailsData];
     updatedItems[index][name] = value;
-    setItems(updatedItems);
+    setDetailsData(updatedItems);
 
     // Automatically update amount in words
-    const totalAmount = updatedItems.reduce((total, item) => total + parseFloat(item.amount || 0), 0);
+    const totalAmount = updatedItems.reduce((total, item) => total + parseFloat(item.amounts || 0), 0);
     setFormValues((prev) => ({ ...prev, amtInWords: toWords(totalAmount) }));
   };
 
   // Add item to the list
   const handleAddItem = () => {
-    setItems([...items, { description: '', amount: '' }]);
+    setDetailsData([...DetailsData, { serviceId: '', amounts: '' }]);
   };
 
   // Remove item from the list
   const handleRemoveItem = (index) => {
-    const updatedItems = items.filter((_, i) => i !== index);
-    setItems(updatedItems);
+    const updatedItems = DetailsData.filter((_, i) => i !== index);
+    setDetailsData(updatedItems);
 
     // Update amount in words after removal
-    const totalAmount = updatedItems.reduce((total, item) => total + parseFloat(item.amount || 0), 0);
+    const totalAmount = updatedItems.reduce((total, item) => total + parseFloat(item.amounts || 0), 0);
     setFormValues((prev) => ({ ...prev, amtInWords: toWords(totalAmount) }));
   };
 
@@ -159,9 +203,6 @@ const BillInvoice = () => {
 
   // Handle save changes
   const handleSave = async () => {
-
-console.log(editData.id)
-
     const headerPayload = {
       ...formValues,
       invoiceDate: formValues.invoiceDate ? format(formValues.invoiceDate, 'yyyy-MM-dd') : '',
@@ -169,49 +210,85 @@ console.log(editData.id)
     };
 
     try {
-      let headerResponse;
+      let headerResponse, headerData;
+
       if (isEditing) {
-        // Update existing record
-        headerResponse = await fetch(`http://localhost:8001/InvoiceHeader/${editData.id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+        // Update existing InvoiceHeader
+        headerResponse = await fetch(`http://localhost:8001/InvoiceHeader/${editData._id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(headerPayload),
         });
+
+        headerData = { _id: editData._id }; // Use existing _id for invoice details
       } else {
+        // Create new InvoiceHeader
         headerResponse = await fetch('http://localhost:8001/InvoiceHeader', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(headerPayload),
+        });
+
+        headerData = await headerResponse.json(); // Get the newly created InvoiceHeader _id
+      }
+
+      if (!headerResponse.ok) {
+        throw new Error('Failed to save InvoiceHeader');
+      }
+
+      console.log('✅ InvoiceHeader Saved:', headerData);
+
+      // Prepare InvoiceDetail Payload (Array of Objects)
+      const detailsPayload = {
+        invoiceId: headerData._id, // Use ObjectId, not invoiceNumber
+        serviceIds: DetailsData.map(item => item.serviceId),
+        amounts: DetailsData.map(item => item.amounts.toString()), // Ensure amounts are strings as per schema
+      };
+
+      console.log('📤 Sending Invoice Details:', detailsPayload);
+
+      let detailsResponse;
+      if (isEditing) {
+        // Update existing InvoiceDetails
+        detailsResponse = await fetch(`http://localhost:8001/InvoiceDetail/${editData._id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(detailsPayload),
+        });
+      } else {
+        // Create new InvoiceDetails
+        detailsResponse = await fetch('http://localhost:8001/InvoiceDetail', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(detailsPayload),
         });
       }
 
-      const headerData = await headerResponse.json();
-      const headerId = headerData.id;
+      if (!detailsResponse.ok) {
+        throw new Error('Failed to save InvoiceDetails');
+      }
 
-      // Save InvoiceDetail items
-      await fetch('http://localhost:8001/InvoiceDetail', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(
-          items.map((item) => ({
-            ...item,
-            headerId,
-          }))
-        ),
-      });
+      console.log('✅ InvoiceDetails Saved Successfully');
 
-      fetchData();
-      setIsDrawerOpen(false);
+      fetchData(); // Refresh Data
       setIsEditing(false);
       setEditData(null);
+      setIsPreviewOpen(true); // Open preview after saving
+      alert('Data submitted successfully!');
+
+      // Clear Form
+      setFormValues({
+        memberId: '',
+        invoiceNumber: '',
+        invoiceDate: null,
+        period: '',
+        dueDate: null,
+        narration: '',
+        amtInWords: '',
+      });
+      setDetailsData([{ serviceId: '', amounts: '' }]);
     } catch (error) {
-      console.error('Error saving data:', error);
+      console.error('❌ Error saving data:', error);
     }
   };
 
@@ -257,18 +334,174 @@ console.log(editData.id)
       { accessorKey: 'id', header: 'ID', size: 100 },
       { accessorKey: 'memberId', header: 'DR Member Name', size: 150 },
       { accessorKey: 'invoiceNumber', header: 'Bill Number', size: 150 },
-      { accessorKey: 'invoiceDate', header: 'Bill Date', size: 150 },
+      {
+        accessorKey: 'invoiceDate', header: 'Bill Date', size: 150, Cell: ({ cell }) =>
+          cell.getValue() ? format(new Date(cell.getValue()), 'dd/MM/yyyy') : '-',
+      },
       { accessorKey: 'period', header: 'Period', size: 150 },
-      { accessorKey: 'dueDate', header: 'Due Date', size: 150 },
+      {
+        accessorKey: 'dueDate', header: 'Due Date', size: 150, Cell: ({ cell }) =>
+          cell.getValue() ? format(new Date(cell.getValue()), 'dd/MM/yyyy') : '-',
+      },
     ],
     []
   );
+
+  const particularsOptions = [
+    { id: 1, name: 'Sinking Fund Contribution' },
+    { id: 2, name: 'Repair Fund Contribution' },
+    { id: 3, name: 'Common Property Tax Contribution' },
+    { id: 4, name: 'Water Charges Contribution' },
+    { id: 5, name: 'Electricity Charges Contribution' },
+    { id: 6, name: 'Service Charges Contribution' },
+  ];
+
+  const Receipt = ({ formValues, DetailsData, societyName }) => {
+
+    const totalAmount = DetailsData.reduce((total, item) => total + parseFloat(item.amounts || 0), 0);
+
+    return (
+      <Box
+        id="secure-receipt"
+        sx={{
+          padding: 3,
+          border: "2px solid #000",
+          borderRadius: "10px",
+          maxWidth: "650px",
+          margin: "auto",
+          background: "linear-gradient(135deg, #f3f3f3, #ffffff)",
+          boxShadow: "0px 5px 15px rgba(0, 0, 0, 0.2)",
+          position: "relative",
+          userSelect: "none",
+          overflow: "hidden",
+        }}
+      >
+        <Typography
+          sx={{
+            position: "absolute",
+            alignSelf: "center",
+            transform: "rotate(-30deg)",
+            opacity: 0.2,
+            fontSize: "40px",
+            fontWeight: "bold",
+            color: "red",
+            pointerEvents: "none",
+            mt:"70%",
+            ml:"10%"
+          }}
+        >
+          {societyName} Bill
+        </Typography>
+        <Typography
+          variant="h5"
+          sx={{
+            fontWeight: "bold",
+            textAlign: "center",
+            mb: 2,
+            color: "#0909ff",
+          }}
+        >
+          {societyName} Society Bill
+        </Typography>
+
+        <TableContainer component={Paper} sx={{ mb: 2 }}>
+          <Table>
+            <TableBody>
+              <TableRow>
+                <TableCell sx={{ fontWeight: "bold" }}>DR Member</TableCell>
+                <TableCell>{formValues.memberId}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell sx={{ fontWeight: "bold" }}>Bill No.:</TableCell>
+                <TableCell>{formValues.invoiceNumber}</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Bill Date:</TableCell>
+                <TableCell>{formValues.invoiceDate ? format(formValues.invoiceDate, "dd-MMM-yy") : ""}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell sx={{ fontWeight: "bold" }}>Period:</TableCell>
+                <TableCell>{formValues.period}</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Due Date:</TableCell>
+                <TableCell>{formValues.dueDate ? format(formValues.dueDate, "dd-MMM-yy") : ""}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ fontWeight: "bold" }}>SR NO.</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Particulars</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Amount</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {DetailsData.map((item, index) => (
+                <TableRow key={index}>
+                  <TableCell>{index + 1}</TableCell>
+                  <TableCell>{item.serviceId}</TableCell>
+                  <TableCell>{item.amounts}</TableCell>
+                </TableRow>
+              ))}
+              <TableRow>
+                <TableCell colSpan={2} align="right" sx={{ fontWeight: "bold" }}>
+                  Total Amount
+                </TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>{totalAmount}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        <Typography sx={{ mt: 2, fontWeight: "bold" }}>
+          Amount in Words: INR {toWords(totalAmount)} Only
+        </Typography>
+
+        <Typography sx={{ mt: 2 }}>Narration: {formValues.narration}</Typography>
+
+        <Typography sx={{ mt: 6, textAlign: "right", fontWeight: "bold" }}>
+          Authorised Signatory
+        </Typography>
+      </Box>
+    );
+  };
+
+  const handlePreview = () => {
+    setIsPreviewOpen(true);
+  };
+
+  const handleGenerateReport = () => {
+    const receiptElement = document.getElementById('receipt');
+    if (receiptElement) {
+      html2canvas(receiptElement).then((canvas) => {
+        const link = document.createElement('a');
+        link.download = 'receipt.png';
+        link.href = canvas.toDataURL();
+        link.click();
+      });
+    } else {
+      console.error('Receipt element not found');
+    }
+  };
 
   return (
     <Box>
       <Box>
         <Box sx={{ display: 'flex', gap: 3 }}>
-          <Button variant="contained" onClick={handleDrawerOpen}>
+          <Button variant="contained" onClick={()=>{
+            handleDrawerOpen();
+            setFormValues({
+              memberId: '',
+              invoiceNumber: '',
+              invoiceDate: null,
+              period: '',
+              dueDate: null,
+              narration: '',
+              amtInWords: '',
+            });
+            setDetailsData([{ serviceId: '', amounts: '' }]);
+          }}>
             Create Bill Invoice
           </Button>
         </Box>
@@ -344,7 +577,7 @@ console.log(editData.id)
                   <Typography>Period</Typography>
                   <TextField
                     size="small"
-                    type="number"
+                    type="text"
                     margin="normal"
                     onChange={(e) => handleFormChange('period', e.target.value)}
                     value={formValues.period}
@@ -399,31 +632,40 @@ console.log(editData.id)
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {items.map((item, index) => (
+                    {DetailsData.map((item, index) => (
                       <TableRow key={index}>
                         <TableCell>{index + 1}</TableCell>
                         <TableCell>
-                          <TextField
-                            size="small"
-                            type="text"
-                            name="description"
-                            placeholder="Particulars"
-                            value={item.description}
-                            onChange={(e) => handleInputChange(e, index)}
+                          <Autocomplete
+                            options={particularsOptions}
+                            value={particularsOptions.find((option) => option.id === item.serviceId) || null}
+                            onChange={(e, newValue) => {
+                              const updatedItems = [...DetailsData];
+                              updatedItems[index].serviceId = newValue ? newValue.id : '';
+                              setDetailsData(updatedItems);
+                            }}
+                            getOptionLabel={(option) => option.name || ''}
+                            renderInput={(params) => (
+                              <TextField
+                                {...params}
+                                size="small"
+                                placeholder="Particulars"
+                              />
+                            )}
                           />
                         </TableCell>
                         <TableCell>
                           <TextField
                             size="small"
                             type="number"
-                            name="amount"
+                            name="amounts"
                             placeholder="Amount"
-                            value={item.amount}
+                            value={item.amounts}
                             onChange={(e) => handleInputChange(e, index)}
                           />
                         </TableCell>
                         <TableCell>
-                          {items.length > 1 && (
+                          {DetailsData.length > 1 && (
                             <Button variant="contained" onClick={() => handleRemoveItem(index)}>
                               Remove
                             </Button>
@@ -436,7 +678,7 @@ console.log(editData.id)
                         Sub-Total
                       </TableCell>
                       <TableCell sx={{ fontWeight: 'bold' }}>
-                        {items.reduce((total, item) => total + parseFloat(item.amount || 0), 0)}
+                        {DetailsData.reduce((total, item) => total + parseFloat(item.amounts || 0), 0)}
                       </TableCell>
                       <TableCell></TableCell>
                     </TableRow>
@@ -473,17 +715,31 @@ console.log(editData.id)
           </Box>
 
           <Box display={'flex'} alignItems={'center'} justifyContent={'center'} gap={2} m={1}>
-            {isEditing && (
-              <Button onClick={handleDelete} variant="contained" color="error">
-                Delete
-              </Button>
+            {isPreviewOpen && (
+              <Box sx={{ mt: 2 }}>
+                <Receipt formValues={formValues} DetailsData={DetailsData} societyName={organisation[0].SocietyName} />
+                <Button onClick={handleGenerateReport} variant="contained" sx={{ mt: 2 }}>
+                  Generate Report
+                </Button>
+              </Box>
             )}
-            <Button onClick={handleSave} variant="contained">
-              Save
-            </Button>
-            <Button onClick={handleCancel} variant="outlined">
-              Cancel
-            </Button>
+
+            <Box display={'flex'} alignItems={'center'} justifyContent={'center'} gap={2} m={1}>
+              {isEditing && (
+                <Button onClick={handleDelete} variant="contained" color="error">
+                  Delete
+                </Button>
+              )}
+              <Button onClick={handleSave} variant="contained">
+                Save
+              </Button>
+              <Button onClick={handlePreview} variant="contained">
+                Preview Report
+              </Button>
+              <Button onClick={handleCancel} variant="outlined">
+                Cancel
+              </Button>
+            </Box>
           </Box>
         </Drawer>
       </Box>
