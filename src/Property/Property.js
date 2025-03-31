@@ -27,6 +27,12 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useTheme } from '@mui/material/styles';
 import axios from 'axios';
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import dayjs from 'dayjs';
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+
+
 
 const Property = () => {
   const theme = useTheme();
@@ -74,7 +80,7 @@ const Property = () => {
           headers: { "Content-Type": "multipart/form-data" },
         });
       } else {
-       console.log("Function Called")
+        console.log("Function Called")
         await axios.post("http://localhost:8001/Property/create", data, {
           headers: { "Content-Type": "multipart/form-data" },
         });
@@ -93,7 +99,7 @@ const Property = () => {
   const handleDelete = async (id) => {
     const isConfirmed = window.confirm("Are you sure you want to delete this property?");
     if (!isConfirmed) return;
-  
+
     try {
       await axios.delete(`http://localhost:8001/Property/${id}`);
       fetchPropertyData(); // Refresh data after deletion
@@ -103,7 +109,7 @@ const Property = () => {
       console.error('Error deleting property:', error);
     }
   };
-  
+
 
   // Handle row click to view/edit property
   const handleRowClick = (row) => {
@@ -350,7 +356,7 @@ const PropertyForm = ({ selectedProperty, onSubmit, onCancel, onDelete }) => {
     <Box>
       <Box display="flex" alignItems="center" gap={2}>
         <Grid container spacing={2} m={3}>
-        <Grid item xs={6}>
+          <Grid item xs={6}>
             <FormControl fullWidth margin="normal">
               <InputLabel>Land Authority</InputLabel>
               <Select
@@ -731,14 +737,18 @@ const PropertyForm = ({ selectedProperty, onSubmit, onCancel, onDelete }) => {
 
           {/* Row 14 */}
           <Grid item xs={6}>
-            <TextField
-              fullWidth
-              margin="normal"
-              label="Water Bill Generation Dates"
-              name="waterBillGenerationDates"
-              value={formData.waterBillGenerationDates}
-              onChange={handleChange}
-            />
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DatePicker
+                label="Water Bill Generation Dates"
+                value={formData.waterBillGenerationDates ? dayjs(formData.waterBillGenerationDates) : null}
+                onChange={(newValue) =>
+                  handleChange({
+                    target: { name: "waterBillGenerationDates", value: newValue ? newValue.toISOString() : null },
+                  })
+                }
+                renderInput={(params) => <TextField {...params} fullWidth margin="normal" />}
+              />
+            </LocalizationProvider>
           </Grid>
           <Grid item xs={6}>
             <TextField

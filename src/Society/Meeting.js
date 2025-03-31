@@ -96,6 +96,8 @@ const Meeting = () => {
 
     // Handle delete meeting
     const handleDeleteMeeting = async (id) => {
+        const isConfirmed = window.confirm("Are you sure you want to delete this record?");
+        if (!isConfirmed) return;
         try {
             await axios.delete(`http://localhost:8001/Meeting/${id}`);
             fetchMeetings(); // Refresh the meetings list

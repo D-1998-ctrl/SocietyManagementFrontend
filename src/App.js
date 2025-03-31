@@ -40,6 +40,7 @@ function App() {
           <Route path="/member/membergroup" element={<GroupMembers />} />
           <Route path="/member/documents" element={<Documents />} />
           <Route path="/member/member-contribution" element={<MemberContri />} />
+          <Route path="/MemberDashboard/overview" element={<Overview />} />
           <Route path="/property/updateproperty" element={<Property />} />
           <Route path="/society/organization" element={<Organization />} />
           <Route path="/society/meeting" element={<Meeting />} />

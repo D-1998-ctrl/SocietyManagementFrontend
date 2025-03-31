@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import {
   Box,
@@ -9,7 +8,8 @@ import {
   ListItemText,
   Collapse,
   Typography,
-  Chip
+  Chip,
+  Avatar
 } from "@mui/material";
 import { ChevronLeft, ChevronRight } from "@mui/icons-material";
 import ExpandLess from "@mui/icons-material/ExpandLess";
@@ -18,17 +18,38 @@ import { Outlet, Link } from "react-router-dom";
 import { FaBars } from "react-icons/fa6";
 import { AiOutlineLogout } from "react-icons/ai";
 import "./sidebar.css";
-import { menuItems } from "./menuItems"; // Import your JSON data
-import logo from '../imgs/companylogo.png'
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import logonew from '../imgs/logonew.png'
-import user from '../imgs/user.jpg'
+import { menuItems } from "./menuItems";
+import logo from '../imgs/companylogo.png';
+import logonew from '../imgs/logonew.png';
+import user from '../imgs/user.jpg';
 
 function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [openMenu, setOpenMenu] = useState(null);
   const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth <= 768);
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
+  const [orgData, setOrgData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchOrgData = async () => {
+      try {
+        const response = await fetch("http://localhost:8001/Organisation");
+        if (!response.ok) {
+          throw new Error("Failed to fetch organization data");
+        }
+        const data = await response.json();
+        setOrgData(data[0]); // Assuming the API returns an array with one object
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrgData();
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -54,47 +75,68 @@ function Sidebar() {
     setOpenMenu(openMenu === path ? null : path);
   };
 
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-IN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  };
+
   return (
     <div className="grid-container">
       <header className="header">
-        <Box component="header" sx={{ p: 2, display: "flex", gap: 3 }}>
+        <Box component="header" sx={{ display: "flex", gap: 3 }}>
           <Box className="bar-icon">
             <FaBars onClick={handleToggleSidebar} style={{ fontSize: "1.8rem" }} />
           </Box>
-          {/* <Box>  <Box><AddCircleOutlineIcon/></Box></Box> */}
           <Box display={'flex'} justifyContent={'space-between'} flex={1} m={2} color={'#000'}>
-          
             <Box display={'flex'} flexDirection={'column'}>
-           
-              <Box display="flex" alignItems="center" gap={1}>
-                <Typography variant="h6" className="title">
-                  <b>Anant Pride - Phase1</b>
-                </Typography>
-                <Chip
-                  label="A340"
-                  sx={{ backgroundColor: "#25D366", color: "#fff",height:'20px' }}
-                />
-              </Box>
-
-              <Typography className="title">
-                Plant 19A, Pirojshanagar, Vikhroli , Mumbai 400079, India
-              </Typography>
+              {loading ? (
+                <Typography variant="body1">Loading organization data...</Typography>
+              ) : error ? (
+                <Typography variant="body1" color="error">{error}</Typography>
+              ) : orgData ? (
+                <>
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <Typography variant="h6" className="title">
+                      <b>{orgData.SocietyName}</b>
+                    </Typography>
+                    <Chip
+                      label={orgData.Registration}
+                      sx={{ backgroundColor: "#25D366", color: "#fff", height: '20px' }}
+                    />
+                  </Box>
+                  <Typography className="title">
+                    {`${orgData.AddressLine1}, ${orgData.AddressLine2}, ${orgData.AddressLine3}`}
+                  </Typography>
+                  <Typography className="title">
+                    {`${orgData.State} - ${orgData.Pin}`}
+                  </Typography>
+                </>
+              ) : null}
             </Box>
-            <Typography variant="h5" className="title">
-
-            </Typography>
-            <Box display={'flex'} flexDirection={"column"}>
-              <Typography variant="h6" className="title">
-                Registration
-              </Typography>
-              <Box display={'flex'} gap={5}>
-                <Typography className="title">
-                  Date:-18-01-2025
-                </Typography>
-                <Typography className="title">
-                  No:-555AB0256Q
-                </Typography>
-              </Box>
+            <Box display={'flex'} flexDirection={"column"} alignItems="flex-start">
+              {orgData && (
+                <>
+                  <Typography variant="h6" className="title">
+                    Registration Details
+                  </Typography>
+                  <Box display={'flex'} gap={2} flexDirection="row">
+                    <Typography className="title">
+                      <b>Date:</b> {formatDate(orgData.RegisteredDate)}
+                    </Typography>
+                    <Typography className="title">
+                      <b>No:</b> {orgData.Registration}
+                    </Typography>
+                    <Typography className="title">
+                      <b>Authority:</b> {orgData.RegisteringAuthority}
+                    </Typography>
+                  </Box>
+                </>
+              )}
             </Box>
           </Box>
         </Box>
@@ -112,14 +154,12 @@ function Sidebar() {
           }}
         >
           <Box sx={{ pt: 3, display: "flex", alignItems: "center", justifyContent: "start", gap: 1 }}>
-          
             <div style={{ textAlign: "center" }}>
               <img
                 src={isCollapsed ? logonew : logo}
                 alt="logo"
-                style={{ height: "50px", margin: "0 auto", width: isCollapsed ? "50px" : "auto", }}
+                style={{ height: "50px", margin: "0 auto", width: isCollapsed ? "50px" : "auto" }}
               />
-
             </div>
             {!isCollapsed && <Typography variant="h5" className="company-name-text"></Typography>}
           </Box>
@@ -132,7 +172,7 @@ function Sidebar() {
                     className="menu-item"
                     sx={{
                       mt: 1,
-                      color:'black',
+                      color: 'black',
                       borderRadius: "10px",
                       transition: "background-color 0.3s, color 0.3s",
                       "&:hover": {
@@ -147,7 +187,7 @@ function Sidebar() {
                       },
                     }}
                     component={item.submenus?.length ? "div" : Link}
-                    to={item.submenus?.length ? undefined : item.path} // Only add `to` for items without submenus
+                    to={item.submenus?.length ? undefined : item.path}
                   >
                     <ListItemIcon sx={{ fontSize: "1.5rem" }} className="menu-icon">
                       {item.icon}
@@ -199,53 +239,45 @@ function Sidebar() {
               ))}
             </List>
 
-            <div className="bottom-content">
-              <ul>
-                <li>
-                  <Link to="#" className="logout-link">
-                    <div className="info">
-
-{/* 
-                      <div>
-                        <AiOutlineLogout className="logout-icon" />
-                      </div> */}
-                    </div>
-                  </Link>
-                </li>
-              </ul>
-            </div>
+            <Box className="user-profile-section" sx={{ mt: 'auto', p: 2 }}>
+              <Box display="flex" alignItems="center" gap={2}>
+                <Avatar 
+                  src={user} 
+                  alt="User" 
+                  sx={{ 
+                    width: 40, 
+                    height: 40,
+                    border: '2px solid #2c85de'
+                  }} 
+                />
+                {!isCollapsed && (
+                  <Box>
+                    <Typography variant="subtitle2" fontWeight="bold">
+                      Chavan Diksha
+                    </Typography>
+                    <Typography variant="caption" color="textSecondary">
+                      Admin
+                    </Typography>
+                  </Box>
+                )}
+                {!isCollapsed && (
+                  <IconButton 
+                    size="small" 
+                    sx={{ 
+                      ml: 'auto',
+                      color: 'error.main',
+                      '&:hover': {
+                        backgroundColor: 'rgba(244, 67, 54, 0.08)'
+                      }
+                    }}
+                    // onClick={logoutuser}
+                  >
+                    <AiOutlineLogout />
+                  </IconButton>
+                )}
+              </Box>
+            </Box>
           </Box>
-
-
-          <div className="bottom-content">
-              <ul>
-                <li>
-                  <Link to="#" className="logout-link">
-                    <div className="info" >
-                      <div>
-                        <img src={user} alt="user" className="user-icon" style={{ height: "50px", width: "50px" }} />
-                      </div>
-                      <span className="hidden-text" >
-                        <b>Chavan Diksha</b>
-                        {/* <h6>{userData}</h6> */}
-                      </span>
-
-                      <div>
-                      <AiOutlineLogout  
-                        className="logout-icon"
-                        // onClick={() => {
-                        //   logoutuser();
-                        // }}
-                      />
-                    </div>
-                    </div>
-
-                 
-                  </Link>
-                </li>
-               
-              </ul>
-            </div>
         </Box>
       </aside>
       <main className="main">
@@ -253,7 +285,6 @@ function Sidebar() {
           <Outlet />
         </Box>
       </main>
-
     </div>
   );
 }

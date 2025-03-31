@@ -171,6 +171,10 @@ const Managingcommittee = () => {
 
   // Handle delete functionality
   const handleDelete = async () => {
+
+    const isConfirmed = window.confirm("Are you sure you want to delete this record ?");
+    if (!isConfirmed) return;
+
     setLoading(true);
     setError(null);
     try {

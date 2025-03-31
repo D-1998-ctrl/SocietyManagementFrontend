@@ -160,9 +160,13 @@ const Organization = () => {
   };
 
   const handleDelete = async () => {
+
+    const isConfirmed = window.confirm("Are you sure you want to delete this Record?");
+    if (!isConfirmed) return;
+
     if (data.length > 0) {
       try {
-        await axios.delete(`http://localhost:8001/Organisation/${data[0].id}`);
+        await axios.delete(`http://localhost:8001/Organisation/${data[0]._id}`);
         setData([]); // Clear existing record
         alert("Society information deleted successfully!");
       } catch (err) {
