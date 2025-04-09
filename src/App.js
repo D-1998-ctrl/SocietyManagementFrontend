@@ -28,6 +28,9 @@ import Accountdash from './Members/Accountdash'
 import Overview from './pages/Overview';
 import Info from './pages/Info';
 import Settings from './Settings/Settings';
+import CreateService from './Invoices/CreateServices';
+import InvoiceTemplate from './Invoices/Invoice_Template';
+import DemoInvoice from './Invoices/DemoInvoice';
 // import LogIn from './pages/LogIn';
 
 function App() {
@@ -51,7 +54,7 @@ function App() {
           <Route>
             <Route path="/accountdash" element={<Accountdash />}>
               <Route path="overview" element={<Overview />} />
-              <Route path="info" element={<Info/>} />
+              <Route path="info" element={<Info />} />
             </Route>
           </Route>
 
@@ -67,17 +70,20 @@ function App() {
 
 
           <Route>
-            <Route path="/invoice" element={<Invoice/>}>
-              <Route path="billinvoice" element={<BillInvoice/>} />
+            <Route path="/invoice" element={<Invoice />}>
+              <Route path="billinvoice" element={<BillInvoice />} />
+              <Route path="DemoInvoice" element={<DemoInvoice />} />
+              <Route path="CreateService" element={<CreateService />} />
+              <Route path="InvoiceTemplate" element={<InvoiceTemplate />} />
               <Route path="billformat" element={<BillFormat />} />
-              <Route path="incomeexpendituresheet" element={<IncomeSheet  />} />
-              <Route path="auditreport" element={<AuditReport  />} />
-              <Route path="investmentsheet" element={<Investmentsheet  />} />
-              <Route path="balancesheet" element={<Balancesheet/>} />
+              <Route path="incomeexpendituresheet" element={<IncomeSheet />} />
+              <Route path="auditreport" element={<AuditReport />} />
+              <Route path="investmentsheet" element={<Investmentsheet />} />
+              <Route path="balancesheet" element={<Balancesheet />} />
             </Route>
           </Route>
 
-          <Route path='settings' element={<Settings/>}/>
+          <Route path='settings' element={<Settings />} />
 
         </Route>
       </Routes>
