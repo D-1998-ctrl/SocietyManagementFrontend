@@ -108,11 +108,11 @@ const InvoiceTemplateDesigner = () => {
                     <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
                       {service?.name || 'Service'}
                     </Typography>
-                    {item.showDescription && item.description && (
+                    {/* {item.showDescription && item.description && (
                       <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.75rem' }}>
                         {item.description}
                       </Typography>
-                    )}
+                    )} */}
                   </TableCell>
                   <TableCell sx={{ p: 1, textAlign: 'right' }}>{item.quantity}</TableCell>
                   <TableCell sx={{ p: 1, textAlign: 'right' }}>
