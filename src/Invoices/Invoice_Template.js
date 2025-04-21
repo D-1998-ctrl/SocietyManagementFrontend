@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -27,7 +27,13 @@ import {
   TableRow,
   TableCell,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
+  Tooltip,
+  Chip,
+  Autocomplete,
+  Alert,
+  AlertTitle,
+  Skeleton
 } from '@mui/material';
 import {
   Save,
@@ -37,8 +43,12 @@ import {
   Info,
   Description,
   Title as TitleIcon,
-  Notes
+  Notes,
+  Search,
+  DragHandle,
+  Reorder
 } from '@mui/icons-material';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
 const InvoiceTemplateDesigner = () => {
   const { id } = useParams();
@@ -56,13 +66,22 @@ const InvoiceTemplateDesigner = () => {
     }
   });
   const [errors, setErrors] = useState({});
+  const [serviceSearch, setServiceSearch] = useState('');
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  // Memoized preview component to prevent unnecessary re-renders
-  const Preview = useCallback(() => (
-    <Paper elevation={1} sx={{ p: 2, border: '1px solid #eee' }}>
+  // Memoized filtered services for search functionality
+  const filteredServices = useMemo(() => {
+    return services.filter(service => 
+      service.name.toLowerCase().includes(serviceSearch.toLowerCase()) ||
+      service.description.toLowerCase().includes(serviceSearch.toLowerCase())
+    );
+  }, [services, serviceSearch]);
+
+  // Optimized preview component with memoization
+  const Preview = useMemo(() => () => (
+    <Paper elevation={1} sx={{ p: 2, border: '1px solid #eee', minHeight: 300 }}>
       {/* Preview Header */}
       <Box sx={{
         backgroundColor: 'primary.main',
@@ -94,44 +113,56 @@ const InvoiceTemplateDesigner = () => {
           <TableHead>
             <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
               <TableCell sx={{ fontWeight: 'bold', p: 1 }}>Service</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', p: 1, textAlign: 'right' }}>Qty</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', p: 1, textAlign: 'right' }}>Factor</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', p: 1, textAlign: 'right' }}>Reference</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', p: 1, textAlign: 'right' }}>Amount</TableCell>
+              {/* <TableCell sx={{ fontWeight: 'bold', p: 1, textAlign: 'right' }}>Factor</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', p: 1, textAlign: 'right' }}>Reference</TableCell> */}
             </TableRow>
           </TableHead>
           <TableBody>
-            {template.items.slice(0, 3).map((item, index) => {
-              const service = services.find(s => s._id === item.serviceId);
-              return (
-                <TableRow key={index}>
-                  <TableCell sx={{ p: 1 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                      {service?.name || 'Service'}
-                    </Typography>
-                    {/* {item.showDescription && item.description && (
-                      <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.75rem' }}>
-                        {item.description}
-                      </Typography>
-                    )} */}
-                  </TableCell>
-                  <TableCell sx={{ p: 1, textAlign: 'right' }}>{item.quantity}</TableCell>
-                  <TableCell sx={{ p: 1, textAlign: 'right' }}>
-                    {service?.factor || 'N/A'}
-                  </TableCell>
-                  <TableCell sx={{ p: 1, textAlign: 'right' }}>
-                    {service?.reference || 'N/A'}
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-            {template.items.length > 3 && (
+            {template.items.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} align="center" sx={{ p: 1 }}>
-                  <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
-                    + {template.items.length - 3} more items
+                <TableCell colSpan={4} align="center" sx={{ p: 2 }}>
+                  <Typography variant="body2" color="textSecondary">
+                    No items added to this template
                   </Typography>
                 </TableCell>
               </TableRow>
+            ) : (
+              <>
+                {template.items.slice(0, 3).map((item, index) => {
+                  const service = services.find(s => s._id === item.serviceId);
+                  return (
+                    <TableRow key={index}>
+                      <TableCell sx={{ p: 1 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                          {service?.name || 'Service'}
+                        </Typography>
+                        {/* {item.showDescription && item.description && (
+                          <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.75rem' }}>
+                            {item.description}
+                          </Typography>
+                        )} */}
+                      </TableCell>
+                      <TableCell sx={{ p: 1, textAlign: 'right' }}>{item.quantity}</TableCell>
+                      {/* <TableCell sx={{ p: 1, textAlign: 'right' }}>
+                        {service?.factor || 'N/A'}
+                      </TableCell>
+                      <TableCell sx={{ p: 1, textAlign: 'right' }}>
+                        {service?.reference || 'N/A'}
+                      </TableCell> */}
+                    </TableRow>
+                  );
+                })}
+                {template.items.length > 3 && (
+                  <TableRow>
+                    <TableCell colSpan={4} align="center" sx={{ p: 1 }}>
+                      <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
+                        + {template.items.length - 3} more items
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </>
             )}
           </TableBody>
         </Table>
@@ -172,7 +203,10 @@ const InvoiceTemplateDesigner = () => {
         }
       } catch (err) {
         console.error('Fetch error:', err);
-        toast.error(err.response?.data?.message || 'Failed to fetch data');
+        toast.error(
+          err.response?.data?.message || 
+          'Failed to load data. Please check your connection and try again.'
+        );
         if (id) navigate('/invoice-templates');
       } finally {
         setLoading(false);
@@ -215,6 +249,13 @@ const InvoiceTemplateDesigner = () => {
         showDescription: true
       }]
     }));
+    // Scroll to the newly added item
+    setTimeout(() => {
+      const itemsContainer = document.getElementById('items-container');
+      if (itemsContainer) {
+        itemsContainer.scrollTop = itemsContainer.scrollHeight;
+      }
+    }, 100);
   };
 
   const handleItemChange = (index, e) => {
@@ -257,7 +298,7 @@ const InvoiceTemplateDesigner = () => {
       newItems[index] = {
         ...newItems[index],
         serviceId: selectedService._id,
-        description: selectedService.description
+        description: selectedService.description || ''
       };
       setTemplate(prev => ({
         ...prev,
@@ -270,17 +311,32 @@ const InvoiceTemplateDesigner = () => {
     }
   };
 
+  const onDragEnd = (result) => {
+    if (!result.destination) return;
+    
+    const newItems = Array.from(template.items);
+    const [reorderedItem] = newItems.splice(result.source.index, 1);
+    newItems.splice(result.destination.index, 0, reorderedItem);
+    
+    setTemplate(prev => ({
+      ...prev,
+      items: newItems
+    }));
+  };
+
   const validateTemplate = () => {
     const newErrors = {};
     if (!template.name.trim()) newErrors.name = 'Template name is required';
-    if (template.items.length === 0) newErrors.items = 'At least one item is required';
-
-    // Validate each item has a service selected
-    template.items.forEach((item, index) => {
-      if (!item.serviceId) {
-        newErrors[`item-${index}-service`] = 'Service is required';
-      }
-    });
+    if (template.items.length === 0) {
+      newErrors.items = 'At least one item is required';
+    } else {
+      // Validate each item has a service selected
+      template.items.forEach((item, index) => {
+        if (!item.serviceId) {
+          newErrors[`item-${index}-service`] = 'Service is required';
+        }
+      });
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -288,7 +344,10 @@ const InvoiceTemplateDesigner = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateTemplate()) return;
+    if (!validateTemplate()) {
+      toast.error('Please fix the errors in the form before submitting.');
+      return;
+    }
 
     setSaving(true);
     try {
@@ -303,8 +362,8 @@ const InvoiceTemplateDesigner = () => {
     } catch (err) {
       console.error('Submission error:', err);
       const errorMessage = err.response?.data?.message || 
-                         err.response?.data?.error || 
-                         `Failed to ${id ? 'update' : 'create'} template`;
+                         err.response?.data?.error?.details?.[0]?.message || 
+                         `Failed to ${id ? 'update' : 'create'} template. Please try again.`;
       toast.error(errorMessage);
     } finally {
       setSaving(false);
@@ -314,12 +373,35 @@ const InvoiceTemplateDesigner = () => {
   if (loading) {
     return (
       <Box sx={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh'
+        p: 3,
+        backgroundColor: '#f9faff',
+        minHeight: '100vh'
       }}>
-        <CircularProgress size={80} />
+        <Box sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          mb: 3,
+          flexWrap: 'wrap',
+          gap: 2
+        }}>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <IconButton disabled sx={{ mr: 2 }}>
+              <ArrowBack />
+            </IconButton>
+            <Skeleton variant="text" width={200} height={40} />
+          </Box>
+          <Skeleton variant="rounded" width={150} height={40} />
+        </Box>
+
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={6}>
+            <Skeleton variant="rounded" height={600} />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Skeleton variant="rounded" height={600} />
+          </Grid>
+        </Grid>
       </Box>
     );
   }
@@ -341,13 +423,15 @@ const InvoiceTemplateDesigner = () => {
         gap: 2
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <IconButton 
-            onClick={() => navigate('/invoice-templates')} 
-            sx={{ mr: 2 }}
-            aria-label="Go back"
-          >
-            <ArrowBack />
-          </IconButton>
+          <Tooltip title="Go back to templates list">
+            <IconButton 
+              onClick={() => navigate('/invoice-templates')} 
+              sx={{ mr: 2 }}
+              aria-label="Go back"
+            >
+              <ArrowBack />
+            </IconButton>
+          </Tooltip>
           <Typography variant="h5" sx={{
             fontWeight: 'bold',
             color: 'primary.main'
@@ -394,7 +478,7 @@ const InvoiceTemplateDesigner = () => {
               Template Configuration
             </Typography>
 
-            <Box sx={{ flex: 1, overflowY: 'auto', pr: 1 }}>
+            <Box sx={{ flex: 1, overflowY: 'auto', pr: 1 }} id="items-container">
               <Grid container spacing={2}>
                 <Grid item xs={12}>
                   <TextField
@@ -405,9 +489,12 @@ const InvoiceTemplateDesigner = () => {
                     value={template.name}
                     onChange={handleChange}
                     error={!!errors.name}
-                    helperText={errors.name}
+                    helperText={errors.name || "Give your template a descriptive name"}
                     variant="outlined"
-                    inputProps={{ 'aria-label': 'Template name' }}
+                    inputProps={{ 
+                      'aria-label': 'Template name',
+                      'aria-required': 'true'
+                    }}
                   />
                 </Grid>
 
@@ -422,6 +509,7 @@ const InvoiceTemplateDesigner = () => {
                     variant="outlined"
                     multiline
                     rows={2}
+                    helperText="Optional description for your template"
                     inputProps={{ 'aria-label': 'Template description' }}
                   />
                 </Grid>
@@ -442,6 +530,9 @@ const InvoiceTemplateDesigner = () => {
                     }
                     label="Active Template"
                   />
+                  <Typography variant="caption" color="textSecondary" display="block">
+                    Active templates can be selected when creating invoices
+                  </Typography>
                 </Grid>
 
                 <Grid item xs={12}>
@@ -463,141 +554,235 @@ const InvoiceTemplateDesigner = () => {
                       <Description sx={{ mr: 1 }} />
                       Invoice Items
                     </Typography>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      startIcon={<AddCircleOutline />}
-                      onClick={handleAddItem}
-                      aria-label="Add invoice item"
-                    >
-                      Add Item
-                    </Button>
                   </Box>
                   {errors.items && (
-                    <Typography color="error" variant="body2" sx={{ mb: 1 }}>
+                    <Alert severity="error" sx={{ mb: 2 }}>
+                      <AlertTitle>Items Required</AlertTitle>
                       {errors.items}
-                    </Typography>
+                    </Alert>
                   )}
                 </Grid>
 
-                {template.items.map((item, index) => (
-                  <Grid item xs={12} key={index}>
-                    <Paper elevation={1} sx={{
-                      p: 2,
-                      borderRadius: 1,
-                      borderLeft: '3px solid',
-                      borderColor: 'primary.main',
-                      position: 'relative',
-                      mb: 1
+                {template.items.length === 0 && (
+                  <Grid item xs={12}>
+                    <Paper variant="outlined" sx={{ 
+                      p: 3, 
+                      textAlign: 'center',
+                      backgroundColor: 'action.hover'
                     }}>
-                      <IconButton
+                      <Typography variant="body1" color="textSecondary">
+                        No items added yet
+                      </Typography>
+                      <Button
+                        variant="text"
                         size="small"
-                        sx={{
-                          position: 'absolute',
-                          top: 4,
-                          right: 4,
-                          color: 'error.main'
-                        }}
-                        onClick={() => handleRemoveItem(index)}
-                        aria-label={`Remove item ${index + 1}`}
+                        startIcon={<AddCircleOutline />}
+                        onClick={handleAddItem}
+                        sx={{ mt: 1 }}
                       >
-                        <RemoveCircleOutline fontSize="small" />
-                      </IconButton>
-
-                      <Grid container spacing={1.5}>
-                        <Grid item xs={12}>
-                          <FormControl fullWidth size="small" error={!!errors[`item-${index}-service`]}>
-                            <InputLabel id={`service-label-${index}`}>Service *</InputLabel>
-                            <Select
-                              labelId={`service-label-${index}`}
-                              label="Service *"
-                              value={item.serviceId}
-                              onChange={(e) => handleServiceSelect(index, e.target.value)}
-                              aria-labelledby={`service-label-${index}`}
-                            >
-                              {services.map(service => (
-                                <MenuItem key={service._id} value={service._id}>
-                                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                    <Avatar sx={{
-                                      width: 22,
-                                      height: 22,
-                                      mr: 1.5,
-                                      backgroundColor: 'primary.light',
-                                      color: 'primary.contrastText',
-                                      fontSize: '0.7rem'
-                                    }}>
-                                      {service.name.charAt(0)}
-                                    </Avatar>
-                                    <Typography variant="body2">{service.name}</Typography>
-                                  </Box>
-                                </MenuItem>
-                              ))}
-                            </Select>
-                            {errors[`item-${index}-service`] && (
-                              <Typography variant="caption" color="error">
-                                {errors[`item-${index}-service`]}
-                              </Typography>
-                            )}
-                          </FormControl>
-                        </Grid>
-
-                        <Grid item xs={12} sm={6}>
-                          <FormControlLabel
-                            control={
-                              <Checkbox
-                                size="small"
-                                checked={item.showDescription}
-                                onChange={(e) => handleItemChange(index, e)}
-                                name="showDescription"
-                                color="primary"
-                              />
-                            }
-                            label={<Typography variant="body2">Show description</Typography>}
-                          />
-                        </Grid>
-
-                        <Grid item xs={12}>
-                          <TextField
-                            fullWidth
-                            size="small"
-                            label="Description"
-                            name="description"
-                            value={item.description}
-                            onChange={(e) => handleItemChange(index, e)}
-                            variant="outlined"
-                            multiline
-                            rows={1}
-                            inputProps={{ 'aria-label': `Item ${index + 1} description` }}
-                          />
-                        </Grid>
-
-                        <Grid item xs={12} sm={6}>
-                          <TextField
-                            fullWidth
-                            size="small"
-                            label="Quantity"
-                            name="quantity"
-                            type="number"
-                            value={item.quantity}
-                            onChange={(e) => handleItemChange(index, e)}
-                            variant="outlined"
-                            InputProps={{
-                              inputProps: { 
-                                min: 1,
-                                'aria-label': `Item ${index + 1} quantity`
-                              },
-                              startAdornment: (
-                                <InputAdornment position="start">
-                                  <Info fontSize="small" color="action" />
-                                </InputAdornment>
-                              ),
-                            }}
-                          />
-                        </Grid>
-                      </Grid>
+                        Add your first item
+                      </Button>
                     </Paper>
                   </Grid>
-                ))}
+                )}
+
+                <DragDropContext onDragEnd={onDragEnd}>
+                  <Droppable droppableId="items">
+                    {(provided) => (
+                      <Grid 
+                        item 
+                        xs={12} 
+                        {...provided.droppableProps}
+                        ref={provided.innerRef}
+                      >
+                        {template.items.map((item, index) => (
+                          <Draggable key={index} draggableId={`item-${index}`} index={index}>
+                            {(provided) => (
+                              <Paper 
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                elevation={1} 
+                                sx={{
+                                  p: 2,
+                                  borderRadius: 1,
+                                  borderLeft: '3px solid',
+                                  borderColor: 'primary.main',
+                                  position: 'relative',
+                                  mb: 2,
+                                  '&:hover': {
+                                    boxShadow: 2
+                                  }
+                                }}
+                              >
+                                <Box 
+                                  {...provided.dragHandleProps}
+                                  sx={{
+                                    position: 'absolute',
+                                    top: 4,
+                                    left: 4,
+                                    color: 'text.secondary',
+                                    cursor: 'grab',
+                                    '&:active': {
+                                      cursor: 'grabbing'
+                                    }
+                                  }}
+                                >
+                                  <DragHandle fontSize="small" />
+                                </Box>
+
+                                <IconButton
+                                  size="small"
+                                  sx={{
+                                    position: 'absolute',
+                                    top: 0,
+                                    right: 4,
+                                    color: 'error.main'
+                                  }}
+                                  onClick={() => handleRemoveItem(index)}
+                                  aria-label={`Remove item ${index + 1}`}
+                                >
+                                  <RemoveCircleOutline fontSize="small" />
+                                </IconButton>
+
+                                <Grid container spacing={1.5} sx={{ pl: 3,mt:"5%" }}>
+                                  <Grid item xs={12}>
+                                    <Autocomplete
+                                      options={filteredServices}
+                                      getOptionLabel={(option) => option.name}
+                                      value={services.find(s => s._id === item.serviceId) || null}
+                                      onChange={(e, newValue) => {
+                                        if (newValue) {
+                                          handleServiceSelect(index, newValue._id);
+                                        }
+                                      }}
+                                      renderInput={(params) => (
+                                        <TextField
+                                          {...params}
+                                          label="Service *"
+                                          size="small"
+                                          error={!!errors[`item-${index}-service`]}
+                                          helperText={errors[`item-${index}-service`]}
+                                          InputProps={{
+                                            ...params.InputProps,
+                                            startAdornment: (
+                                              <>
+                                                <InputAdornment position="start">
+                                                  <Search fontSize="small" />
+                                                </InputAdornment>
+                                                {params.InputProps.startAdornment}
+                                              </>
+                                            ),
+                                          }}
+                                        />
+                                      )}
+                                      renderOption={(props, option) => (
+                                        <MenuItem {...props}>
+                                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                            <Avatar sx={{
+                                              width: 22,
+                                              height: 22,
+                                              mr: 1.5,
+                                              backgroundColor: 'primary.light',
+                                              color: 'primary.contrastText',
+                                              fontSize: '0.7rem'
+                                            }}>
+                                              {option.name.charAt(0)}
+                                            </Avatar>
+                                            <Box>
+                                              <Typography variant="body2">{option.name}</Typography>
+                                              {/* <Typography variant="caption" color="textSecondary">
+                                                {option.reference}
+                                              </Typography> */}
+                                            </Box>
+                                          </Box>
+                                        </MenuItem>
+                                      )}
+                                      fullWidth
+                                      isOptionEqualToValue={(option, value) => option._id === value._id}
+                                      onInputChange={(e, newInputValue) => {
+                                        setServiceSearch(newInputValue);
+                                      }}
+                                    />
+                                  </Grid>
+
+                                  <Grid item xs={12} sm={6}>
+                                    <FormControlLabel
+                                      control={
+                                        <Checkbox
+                                          size="small"
+                                          checked={item.showDescription}
+                                          onChange={(e) => handleItemChange(index, e)}
+                                          name="showDescription"
+                                          color="primary"
+                                        />
+                                      }
+                                      label={<Typography variant="body2">Show description</Typography>}
+                                    />
+                                  </Grid>
+
+                                  <Grid item xs={12}>
+                                    <TextField
+                                      fullWidth
+                                      size="small"
+                                      label="Description"
+                                      name="description"
+                                      value={item.description}
+                                      onChange={(e) => handleItemChange(index, e)}
+                                      variant="outlined"
+                                      multiline
+                                      rows={2}
+                                      helperText="This will be shown on the invoice if 'Show description' is checked"
+                                      inputProps={{ 'aria-label': `Item ${index + 1} description` }}
+                                    />
+                                  </Grid>
+
+                                  <Grid item xs={12} sm={6}>
+                                    <TextField
+                                      fullWidth
+                                      size="small"
+                                      label="Quantity"
+                                      name="quantity"
+                                      type="number"
+                                      value={item.quantity}
+                                      onChange={(e) => handleItemChange(index, e)}
+                                      variant="outlined"
+                                      InputProps={{
+                                        inputProps: { 
+                                          min: 1,
+                                          'aria-label': `Item ${index + 1} quantity`
+                                        },
+                                        startAdornment: (
+                                          <InputAdornment position="start">
+                                            <Info fontSize="small" color="action" />
+                                          </InputAdornment>
+                                        ),
+                                      }}
+                                    />
+                                  </Grid>
+                                </Grid>
+                              </Paper>
+                            )}
+                          </Draggable>
+                        ))}
+                        {provided.placeholder}
+                      </Grid>
+                    )}
+                  </Droppable>
+                </DragDropContext>
+
+                {template.items.length > 0 && (
+                  <Grid item xs={12}>
+                    <Button
+                      fullWidth
+                      variant="outlined"
+                      startIcon={<AddCircleOutline />}
+                      onClick={handleAddItem}
+                      sx={{ mt: 1 }}
+                    >
+                      Add Another Item
+                    </Button>
+                  </Grid>
+                )}
               </Grid>
             </Box>
           </Paper>
@@ -634,6 +819,7 @@ const InvoiceTemplateDesigner = () => {
                     variant="outlined"
                     multiline
                     rows={3}
+                    helperText="This will appear at the bottom of the invoice"
                     inputProps={{ 'aria-label': 'Terms and conditions' }}
                   />
                 </Grid>
@@ -649,6 +835,7 @@ const InvoiceTemplateDesigner = () => {
                     variant="outlined"
                     multiline
                     rows={2}
+                    helperText="A short message to appear below the terms"
                     inputProps={{ 'aria-label': 'Footer note' }}
                   />
                 </Grid>
@@ -658,9 +845,22 @@ const InvoiceTemplateDesigner = () => {
                 </Grid>
 
                 <Grid item xs={12}>
-                  <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 'bold' }}>
-                    Invoice Preview
-                  </Typography>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    mb: 1
+                  }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                      Invoice Preview
+                    </Typography>
+                    <Chip 
+                      label="Live Preview" 
+                      size="small" 
+                      color="info" 
+                      icon={<Info fontSize="small" />}
+                    />
+                  </Box>
                   <Preview />
                 </Grid>
               </Grid>
