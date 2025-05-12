@@ -52,6 +52,7 @@ const JournalVoucher = () => {
   const [previewOpen, setPreviewOpen] = useState(false);
 
   const [formValues, setFormValues] = useState({
+    voucherNumber:"",
     date: new Date(),
     debitLedger: "",
     creditLedger: "",
@@ -159,6 +160,8 @@ const JournalVoucher = () => {
         creditAmount: parseFloat(formValues.creditAmount),
       };
 
+      console.log(payload)
+
       try {
         if (isEditMode) {
           await axios.put(`http://localhost:8001/JournalVoucher/${selectedRow._id}`, payload);
@@ -204,7 +207,7 @@ const JournalVoucher = () => {
 
   const columns = useMemo(() => [
     {
-      accessorKey: 'voucherNumber',
+      accessorKey: 'JournalVoucherNumber',
       header: 'Voucher No.',
       size: 120,
       Cell: ({ cell }) => <Typography variant="body2" sx={{ fontWeight: 500 }}>{cell.getValue()}</Typography>

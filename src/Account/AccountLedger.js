@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import {
-    Box, Button, Typography, TextField, Drawer, Divider, FormControl,
+    Box, Dialog, DialogTitle, DialogContent, Button, Typography, TextField, Drawer, Divider, FormControl,
     Select, MenuItem, CircularProgress, useMediaQuery,
 } from '@mui/material';
 import { MaterialReactTable } from 'material-react-table';
 import CloseIcon from '@mui/icons-material/Close';
 import axios from 'axios';
 import { useTheme } from '@mui/material/styles';
-
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 // Data extracted from the Excel file
 const groups = [
     { groupCode: '1', groupName: 'CASH IN HAND', typeCode: 'B' },
@@ -114,18 +115,20 @@ const AccountLedger = () => {
     useEffect(() => {
         fetchAccounts();
     }, []);
-
+    const [ledgerId, setLedgerId] = useState();
     const handleRowClick = async (row) => {
         try {
             const response = await axios.get(`http://localhost:8001/Account/${row._id}`);
             setSelectedRow(response.data);
+            setLedgerId(response.data._id)
             setFormData(response.data);
             setIsDrawerOpen(true);
+            console.log(" row Id ", row._id)
         } catch (error) {
             console.error('Error fetching account details:', error);
         }
     };
-
+    console.log('ledgerId', ledgerId)
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
@@ -194,6 +197,60 @@ const AccountLedger = () => {
         { accessorKey: 'typeCode', header: 'Type Code' },
     ];
 
+
+    //get Vouchers
+    const [vouchers, setVouchers] = useState([]);
+    const [open, setOpen] = useState(false);
+
+
+
+    // //generatePDF
+    // const generatePDF = (data) => {
+    //     const doc = new jsPDF();
+    //     doc.text("Vouchers Report", 14, 16);
+
+    //     const tableColumn = ["Voucher Number", "Type", "Amount", "Ledger IDs", "Created At"];
+    //     const tableRows = [];
+
+    //     data.forEach((voucher) => {
+    //       const rowData = [
+    //         voucher.VoucherNumber,
+    //         voucher.VoucherType,
+    //         voucher.VoucherAmount,
+    //         voucher.LedgerId.join(", "),
+    //         new Date(voucher.createdAt).toLocaleString()
+    //       ];
+    //       tableRows.push(rowData);
+    //     });
+
+    //     doc.autoTable({
+    //       head: [tableColumn],
+    //       body: tableRows,
+    //       startY: 20,
+    //     });
+
+    //     doc.save("vouchers.pdf");
+    //   };
+
+    const getVoucherByLedgerId = () => {
+        const requestOptions = {
+            method: "GET",
+            redirect: "follow"
+        };
+
+        fetch(`http://localhost:8001/Voucher/ledger/${ledgerId}` ,requestOptions)
+            .then((response) => response.json())
+            .then((result) => {
+                console.log(result);
+                setVouchers(result);
+                setOpen(true)
+            })
+            .catch((error) => console.error(error));
+    }
+
+
+
+
     return (
         <Box>
             <Box sx={{ background: 'rgb(236 242 246)', borderRadius: '10px', p: 5, height: 'auto' }}>
@@ -212,6 +269,7 @@ const AccountLedger = () => {
                             typeCode: '',
                         });
                     }}>Add Ledger Account</Button>
+
                 </Box>
 
                 <Box mt={4}>
@@ -343,6 +401,62 @@ const AccountLedger = () => {
                             {isSubmitting ? <CircularProgress size={24} sx={{ color: 'white' }} /> : 'Delete'}
                         </Button>}
                         <Button variant="outlined" onClick={() => setIsDrawerOpen(false)}>Cancel</Button>
+
+                        <Button onClick={getVoucherByLedgerId} variant="contained" >Show Entry</Button>
+
+                        <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="lg">
+                            <DialogTitle>Voucher List</DialogTitle>
+                            <DialogContent>
+                                {vouchers.length > 0 && (
+                                    <>
+                                        <table border="1" cellPadding="10" style={{ marginTop: "20px", width: "100%", borderCollapse: "collapse" }}>
+                                            <thead>
+                                                <tr>
+                                                    <th>Voucher Number</th>
+                                                    <th>Voucher Type</th>
+                                                    <th>Voucher Amount</th>
+                                                    {/* <th>Ledger IDs</th> */}
+                                                    <th>Created At</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {vouchers.map((voucher) => (
+                                                    <tr key={voucher._id}>
+                                                        <td>{voucher.VoucherNumber}</td>
+                                                        <td>{voucher.VoucherType}</td>
+                                                        <td>{voucher.VoucherAmount}</td>
+                                                        {/* <td>{voucher.LedgerId.join(", ")}</td> */}
+                                                        <td>{new Date(voucher.createdAt).toLocaleString()}</td>
+
+
+                                                    </tr>
+
+
+                                                ))}
+                                            </tbody>
+
+                                            <tfoot>
+
+                                                <td colSpan="2" style={{ textAlign: "right", fontWeight: "bold" }}>Total</td>
+                                                <td style={{ fontWeight: "bold" }}>
+                                                    {vouchers.reduce((total, v) => total + Number(v.VoucherAmount), 0)}
+                                                </td>
+
+
+                                            </tfoot>
+                                        </table>
+
+                                        <Button
+                                            variant="outlined"
+                                            // onClick={() => generatePDF(vouchers)}
+                                            style={{ marginTop: "20px" }}
+                                        >
+                                            Export as PDF
+                                        </Button>
+                                    </>
+                                )}
+                            </DialogContent>
+                        </Dialog>
                     </Box>
                 </Drawer>
             </Box>

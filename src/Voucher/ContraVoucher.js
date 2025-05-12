@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
-import { 
-  Alert, Autocomplete, Menu, useMediaQuery, Box, Button, Typography, 
-  TextField, Drawer, Divider, FormControl, Select, MenuItem, InputLabel, 
+import {
+  Alert, Autocomplete, Menu, useMediaQuery, Box, Button, Typography,
+  TextField, Drawer, Divider, FormControl, Select, MenuItem, InputLabel,
   Card, CardContent, Grid, IconButton, Tooltip, Modal, Paper, CircularProgress
 } from '@mui/material';
 import { MaterialReactTable } from 'material-react-table';
@@ -57,6 +57,12 @@ const ContraVoucher = () => {
 
   // Memoized columns for the table
   const columns = useMemo(() => [
+    {
+      accessorKey: 'contraVoucherNumber',
+      header: 'Voucher No.',
+      size: 120,
+      Cell: ({ cell }) => <Typography variant="body2" sx={{ fontWeight: 500 }}>{cell.getValue()}</Typography>
+    },
     {
       accessorKey: 'date',
       header: 'Date',
@@ -160,7 +166,7 @@ const ContraVoucher = () => {
       setSearchResults([]);
       return;
     }
-    
+
     try {
       setIsSearching(true);
       const response = await axios.get('http://localhost:8001/contraVoucher/search', {
@@ -337,14 +343,14 @@ const ContraVoucher = () => {
   const handleCrNameChange = (event, newValue) => {
     setFormData(prev => ({
       ...prev,
-      crNameOfCreditor: newValue ? newValue.accountName : ''
+      crNameOfCreditor: newValue ? newValue._id : ''
     }));
   };
 
   const handleLedgerChange = (event, newValue) => {
     setFormData(prev => ({
       ...prev,
-      nameOfLedger: newValue ? newValue.accountName : ''
+      nameOfLedger: newValue ? newValue._id : ''
     }));
   };
 
@@ -468,8 +474,8 @@ const ContraVoucher = () => {
               Contra Voucher Management
             </Typography>
             <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-              <Button 
-                variant="contained" 
+              <Button
+                variant="contained"
                 onClick={handleDrawerOpen}
                 sx={{
                   backgroundColor: '#2c85de',
@@ -491,9 +497,9 @@ const ContraVoucher = () => {
             </Alert>
           )}
 
-          <Box sx={{ 
-            backgroundColor: 'background.paper', 
-            borderRadius: '8px', 
+          <Box sx={{
+            backgroundColor: 'background.paper',
+            borderRadius: '8px',
             overflow: 'hidden',
             boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
           }}>
@@ -505,7 +511,7 @@ const ContraVoucher = () => {
               state={{ isLoading: isLoading || isSearching }}
               muiTableBodyRowProps={({ row }) => ({
                 onClick: () => handleRowClick(row.original),
-                sx: { 
+                sx: {
                   cursor: 'pointer',
                   '&:hover': { backgroundColor: 'rgba(44, 133, 222, 0.08)' }
                 },
@@ -595,7 +601,8 @@ const ContraVoucher = () => {
                 getOptionLabel={(option) => option.accountName}
                 loading={loadingAccounts}
                 onChange={handleCrNameChange}
-                value={accounts.find(acc => acc.accountName === formData.crNameOfCreditor) || null}
+                // value={accounts.find(acc => acc.accountName === formData.crNameOfCreditor) || null}
+                  value={accounts.find(acc => acc._id === formData.crNameOfCreditor) || null}
                 renderInput={(params) => (
                   <TextField
                     {...params}
@@ -626,7 +633,7 @@ const ContraVoucher = () => {
                 getOptionLabel={(option) => option.accountName}
                 loading={loadingLedgers}
                 onChange={handleLedgerChange}
-                value={ledgers.find(led => led.accountName === formData.nameOfLedger) || null}
+                value={ledgers.find(led => led._id === formData.nameOfLedger) || null}
                 renderInput={(params) => (
                   <TextField
                     {...params}
@@ -694,7 +701,7 @@ const ContraVoucher = () => {
                     variant="outlined"
                     size="small"
                     onClick={() => setAutoFillAmount(!autoFillAmount)}
-                    sx={{ 
+                    sx={{
                       minWidth: 0,
                       backgroundColor: autoFillAmount ? '#e3f2fd' : 'inherit'
                     }}
@@ -813,8 +820,8 @@ const ContraVoucher = () => {
           </Grid>
         </Box>
 
-        <Box sx={{ 
-          p: 2, 
+        <Box sx={{
+          p: 2,
           borderTop: '1px solid #e0e0e0',
           display: 'flex',
           justifyContent: 'flex-end',
@@ -822,16 +829,16 @@ const ContraVoucher = () => {
         }}>
           {editingId && (
             <>
-              <Button 
-                variant="outlined" 
+              <Button
+                variant="outlined"
                 onClick={handlePreview}
                 sx={{ borderRadius: '8px' }}
               >
                 Preview Voucher
               </Button>
-              <Button 
-                variant="outlined" 
-                color="error" 
+              <Button
+                variant="outlined"
+                color="error"
                 onClick={handleDelete}
                 sx={{ borderRadius: '8px' }}
               >
@@ -839,17 +846,17 @@ const ContraVoucher = () => {
               </Button>
             </>
           )}
-          <Button 
-            variant="outlined" 
+          <Button
+            variant="outlined"
             onClick={handleDrawerClose}
             sx={{ borderRadius: '8px' }}
           >
             Cancel
           </Button>
-          <Button 
-            variant="contained" 
+          <Button
+            variant="contained"
             onClick={handleSubmit}
-            sx={{ 
+            sx={{
               borderRadius: '8px',
               backgroundColor: '#2c85de',
               '&:hover': { backgroundColor: '#1a6cb3' }
@@ -859,9 +866,9 @@ const ContraVoucher = () => {
           </Button>
         </Box>
       </Drawer>
-      <PreviewVoucher 
-        data={formData} 
-        onClose={() => setPreviewOpen(false)} 
+      <PreviewVoucher
+        data={formData}
+        onClose={() => setPreviewOpen(false)}
       />
     </Box>
   );

@@ -26,6 +26,7 @@ const PurchaseVoucher = () => {
 
   // State for form data
   const [formData, setFormData] = useState({
+    voucherNumber:"",
     date: new Date(),
     refBillNo: '',
     drNameOfLedger: '',
@@ -36,7 +37,7 @@ const PurchaseVoucher = () => {
     amountOfBill: '',
     amount: '',
     cgst: '',
-    billNo: '',
+    // billNo: '',
     billPeriod: '',
     narration: '',
     customerNo: ''
@@ -106,6 +107,7 @@ const PurchaseVoucher = () => {
       ...prev,
       [name]: value
     }));
+    console.log('billno',value)
   };
 
   // Handle autocomplete changes
@@ -127,6 +129,7 @@ const PurchaseVoucher = () => {
   // Handle row click for editing
   const handleRowClick = (rowData) => {
     setFormData({
+      voucherNumber:"",
       date: new Date(rowData.date),
       refBillNo: rowData.refBillNo,
       drNameOfLedger: rowData.drNameOfLedger,
@@ -137,7 +140,7 @@ const PurchaseVoucher = () => {
       amountOfBill: rowData.amountOfBill,
       amount: rowData.amount,
       cgst: rowData.cgst,
-      billNo: rowData.billNo,
+      // billNo: rowData.billNo,
       billPeriod: rowData.billPeriod,
       narration: rowData.narration,
       customerNo: rowData.customerNo || ''
@@ -149,6 +152,7 @@ const PurchaseVoucher = () => {
 
   // Handle form submit
   const handleSubmit = async (e) => {
+    console.log(formData)
     e.preventDefault();
     try {
       setLoading(true);
@@ -196,7 +200,7 @@ const PurchaseVoucher = () => {
       amountOfBill: '',
       amount: '',
       cgst: '',
-      billNo: '',
+      // billNo: '',
       billPeriod: '',
       narration: '',
       customerNo: ''
@@ -210,7 +214,12 @@ const PurchaseVoucher = () => {
 
   const columns = useMemo(() => {
     return [
-      
+       {
+            accessorKey: 'purchasevoucherNumber',
+            header: 'Voucher No.',
+            size: 120,
+            Cell: ({ cell }) => <Typography variant="body2" sx={{ fontWeight: 500 }}>{cell.getValue()}</Typography>
+          },
       {
         accessorKey: 'date',
         header: 'Date',
@@ -223,8 +232,8 @@ const PurchaseVoucher = () => {
         size: 150,
       },
       {
-        accessorKey: 'billNo',
-        header: 'Bill No',
+        accessorKey: 'refBillNo',
+        header: ' Ref.Bill No',
         size: 150,
       },
       {
@@ -399,9 +408,9 @@ const PurchaseVoucher = () => {
               Transaction Details
             </Typography>
             <Grid container spacing={2}>
-              <Grid item xs={4}>
+              {/* <Grid item xs={4}>
                 <Typography variant="body2"><strong>Bill No:</strong> {formData.billNo}</Typography>
-              </Grid>
+              </Grid> */}
               <Grid item xs={4}>
                 <Typography variant="body2"><strong>Ref Bill No:</strong> {formData.refBillNo}</Typography>
               </Grid>
@@ -553,8 +562,8 @@ const PurchaseVoucher = () => {
               size="small"
               margin="normal"
               fullWidth
-              required
-              disabled={loading}
+              // required
+              // disabled={loading}
             />
 
             <Autocomplete
@@ -563,9 +572,9 @@ const PurchaseVoucher = () => {
               getOptionLabel={(option) => option.accountName}
               loading={loading}
               onChange={(event, newValue) => {
-                handleAutocompleteChange('drNameOfLedger', newValue?.accountName || '');
+                handleAutocompleteChange('drNameOfLedger', newValue?._id || '');
               }}
-              value={ledgerAccounts.find(acc => acc.accountName === formData.drNameOfLedger) || null}
+              value={ledgerAccounts.find(acc => acc._id === formData.drNameOfLedger) || null}
               renderInput={(params) => (
                 <TextField
                   {...params}
@@ -616,9 +625,9 @@ const PurchaseVoucher = () => {
               getOptionLabel={(option) => option.accountName}
               loading={loading}
               onChange={(event, newValue) => {
-                handleAutocompleteChange('crNameOfCreditor', newValue?.accountName || '');
+                handleAutocompleteChange('crNameOfCreditor', newValue?._id || '');
               }}
-              value={creditorAccounts.find(acc => acc.accountName === formData.crNameOfCreditor) || null}
+              value={creditorAccounts.find(acc => acc._id === formData.crNameOfCreditor) || null}
               renderInput={(params) => (
                 <TextField
                   {...params}

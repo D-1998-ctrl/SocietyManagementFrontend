@@ -34,7 +34,7 @@ const ReceiptVoucher = () => {
 
   const columns = useMemo(() => [
     {
-      accessorKey: 'voucherNumber',
+      accessorKey: 'receiptVoucherNumber',
       header: 'Voucher No',
       size: 150,
       Cell: ({ cell }) => (
@@ -504,8 +504,10 @@ const NewReceiptVoucher = ({
         const { data } = await axios.get(`http://localhost:8001/Account`, {
           params: { q: query }
         });
+        console.log("data",data);
         // Filter for groupId 3 on frontend
-        setDrAccountOptions(data.filter(account => account.groupId === "3"));
+        setDrAccountOptions(data.filter(account => account.groupId === '3'));
+      console.log('drAccountOptions',drAccountOptions)
       } catch (error) {
         console.error("Error fetching accounts:", error);
         toast.error("Failed to fetch accounts");
@@ -514,6 +516,22 @@ const NewReceiptVoucher = ({
     []
   );
 
+//No Filtering
+  // const debouncedFetchAccounts = useMemo(
+  //   () => debounce(async (query) => {
+  //     try {
+  //       const { data } = await axios.get(`http://localhost:8001/Account`, {
+  //         params: { q: query }
+  //       });
+  //       console.log("API data:", data); // Debug raw data
+  //       setDrAccountOptions(data); // Set ALL data without filtering
+  //     } catch (error) {
+  //       console.error("Error details:", error.response?.data || error.message);
+  //       toast.error("Failed to fetch accounts");
+  //     }
+  //   }, 500),
+  //   []
+  // );
   const debouncedFetchInvoices = useMemo(
     () => debounce(async (query) => {
       try {
@@ -591,7 +609,7 @@ const NewReceiptVoucher = ({
 
     try {
       const payload = {
-        voucherNumber: voucherNo,
+       // voucherNumber: voucherNo,
         voucherDate: dateOfReceiptVoucher,
         narration: narration,
         drAccount: {
@@ -618,12 +636,15 @@ const NewReceiptVoucher = ({
         instrumentBranch: instrumentBranch,
       };
 
+      console.log(payload)
+
       const apiCall = isEditMode
         ? axios.put(`http://localhost:8001/RecieptVoucher/${selectedVoucher._id}`, payload)
         : axios.post("http://localhost:8001/RecieptVoucher", payload);
 
       await apiCall;
       toast.success(`Voucher ${isEditMode ? 'updated' : 'created'} successfully`);
+
       refreshData();
       handleDrawerClose();
     } catch (error) {
@@ -631,6 +652,77 @@ const NewReceiptVoucher = ({
       toast.error(error.response?.data?.message || `Failed to ${isEditMode ? 'update' : 'create'} voucher`);
     }
   };
+
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  
+  //   if (!validateFields()) {
+  //     return;
+  //   }
+  
+  //   try {
+  //     const payload = {
+  //       voucherDate: dateOfReceiptVoucher,
+  //       narration: narration,
+  //       drAccount: {
+  //         _id: drAccount._id,
+  //         accountId: drAccount.accountId,
+  //         accountName: drAccount.accountName,
+  //         drOrCr: drAccount.drOrCr
+  //       },
+  //       crAccount: {
+  //         _id: crAccount._id,
+  //         accountId: crAccount.accountId,
+  //         accountName: crAccount.accountName,
+  //         drOrCr: crAccount.drOrCr
+  //       },
+  //       crAmount: Number(crAmount),
+  //       referenceInvoice: referenceInvoice ? {
+  //         _id: referenceInvoice._id,
+  //         invoiceNumber: referenceInvoice.invoiceNumber
+  //       } : null,
+  //       transactionType: transactionType,
+  //       instrumentNumber: instrumentNumber,
+  //       instrumentDate: instrumnetDate,
+  //       instrumentBank: instrumentBank,
+  //       instrumentBranch: instrumentBranch,
+  //     };
+  
+  //     console.log("Receipt Voucher Payload:", payload);
+  
+  //     let receiptVoucherResponse;
+  
+  //     if (isEditMode) {
+  //       receiptVoucherResponse = await axios.put(`http://localhost:8001/RecieptVoucher/${selectedVoucher._id}`, payload);
+  //     } else {
+  //       receiptVoucherResponse = await axios.post("http://localhost:8001/RecieptVoucher", payload);
+  //     }
+  
+  //     const createdVoucher = receiptVoucherResponse.data;
+  //     console.log("Created Receipt Voucher Response:", createdVoucher);
+  
+  //     const voucherPayload = {
+  //       VoucherId: createdVoucher._id,
+  //       VoucherType: "Receipt",
+  //       LedgerId: [drAccount._id, crAccount._id],
+  //       VoucherAmount: Number(crAmount),
+  //        VoucherNumber:createdVoucher.receiptVoucherNumber
+  //     };
+  
+  //     console.log("Voucher Payload:", voucherPayload);
+  
+  //     await axios.post("http://localhost:8001/Voucher/", voucherPayload);
+  
+  //     toast.success(`Voucher ${isEditMode ? 'updated' : 'created'} successfully`);
+  
+  //     refreshData();
+  //     handleDrawerClose();
+  //   } catch (error) {
+  //     console.error("Error:", error.response?.data || error.message);
+  //     toast.error(error.response?.data?.message || `Failed to ${isEditMode ? 'update' : 'create'} voucher`);
+  //   }
+  // };
+  
 
   const renderDrAccountDropdown = () => (
     <Box sx={{ width: "100%", mb: 2 }}>

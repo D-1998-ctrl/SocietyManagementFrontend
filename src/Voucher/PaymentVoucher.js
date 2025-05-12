@@ -56,6 +56,7 @@ const PaymentVoucher = () => {
       const response = await axios.get('http://localhost:8001/Account');
       // Filter accounts where groupId is not 7
       const filteredAccounts = response.data.filter(account => account.groupId !== "7");
+      console.log('accntg',response.data)
       setAccounts(filteredAccounts);
       setLoadingAccounts(false);
     } catch (error) {
@@ -101,34 +102,39 @@ const PaymentVoucher = () => {
 
   const columns = useMemo(() => {
     return [
-
+      {
+        accessorKey: 'PaymentVoucherNumber',
+        header: 'Voucher No.',
+        size: 120,
+        Cell: ({ cell }) => <Typography variant="body2" sx={{ fontWeight: 500 }}>{cell.getValue()}</Typography>
+      },
       {
         accessorKey: 'date',
         header: 'Date',
         size: 150,
         Cell: ({ cell }) => new Date(cell.getValue()).toLocaleDateString(),
       },
-      {
-        accessorKey: 'nameOfCreditor',
-        header: 'Name of Creditor/Expense Head',
-        size: 150,
-      },
+      // {
+      //   accessorKey: 'nameOfCreditor',
+      //   header: 'Name of Creditor/Expense Head',
+      //   size: 150,
+      // },
       {
         accessorKey: 'amountPaidDr',
         header: 'Amount Paid Dr',
         size: 150,
       },
 
-      {
-        accessorKey: 'bank',
-        header: 'Bank',
-        size: 150,
-      },
-      {
-        accessorKey: 'drName',
-        header: 'DrName',
-        size: 150,
-      },
+      // {
+      //   accessorKey: 'bank',
+      //   header: 'Bank',
+      //   size: 150,
+      // },
+      // {
+      //   accessorKey: 'drName',
+      //   header: 'DrName',
+      //   size: 150,
+      // },
       {
         accessorKey: 'amountPaidCr',
         header: 'Amount Paid Cr',
@@ -187,15 +193,15 @@ const PaymentVoucher = () => {
   const handleCreditorChange = (event, newValue) => {
     setFormData(prev => ({
       ...prev,
-      nameOfCreditor: newValue ? newValue.accountName : '',
-      drName: newValue ? newValue.accountName : ''
+      nameOfCreditor: newValue ? newValue._id : '',
+      drName: newValue ? newValue._id : ''
     }));
   };
 
   const handleBankChange = (event, newValue) => {
     setFormData(prev => ({
       ...prev,
-      bank: newValue ? newValue.accountName : ''
+      bank: newValue ? newValue._id : ''
     }));
   };
 
@@ -535,7 +541,9 @@ const PaymentVoucher = () => {
                   getOptionLabel={(option) => option.accountName}
                   loading={loadingAccounts}
                   onChange={handleCreditorChange}
-                  value={accounts.find(acc => acc.accountName === formData.nameOfCreditor) || null}
+                  // value={accounts.find(acc => acc.accountName === formData.nameOfCreditor) || null}
+                  value={accounts.find(acc => acc._id === formData.nameOfCreditor) || null}
+
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -555,7 +563,8 @@ const PaymentVoucher = () => {
                   getOptionLabel={(option) => option.accountName}
                   loading={loadingBanks}
                   onChange={handleBankChange}
-                  value={banks.find(bank => bank.accountName === formData.bank) || null}
+                  // value={banks.find(bank => bank.accountName === formData.bank) || null}
+                  value={banks.find(bank => bank._id === formData.bank) || null}
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -765,9 +774,9 @@ const PaymentVoucher = () => {
       </Drawer>
 
       {/* Delete confirmation dialog */}
-      <PreviewVoucher 
-        data={formData} 
-        onClose={() => setPreviewOpen(false)} 
+      <PreviewVoucher
+        data={formData}
+        onClose={() => setPreviewOpen(false)}
       />
 
       {/* Delete Confirmation Dialog */}
