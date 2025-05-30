@@ -165,7 +165,7 @@ const GroupMembers = () => {
             const accountData = {
               accountName: `${formData.firstName} ${formData.middleName || ''} ${formData.surname}`.trim(),
               groupId: '3', // Must be string as per schema
-              subGroupId: '1', // Must be string and is now required
+              subGroupId: '17', // Must be string and is now required
               opening: 0, // Must be number (not string)
               drOrCr: 'DR', // Must be either 'DR' or 'CR'
               typeCode: 'Balance Sheet' // Must match enum values

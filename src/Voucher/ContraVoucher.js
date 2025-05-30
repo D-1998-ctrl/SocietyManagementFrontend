@@ -427,6 +427,7 @@ const ContraVoucher = () => {
         await axios.put(`http://localhost:8001/contraVoucher/${editingId}`, formData);
       } else {
         await axios.post('http://localhost:8001/contraVoucher', formData);
+        console.log("formdata",formData)
       }
       fetchData();
       setIsDrawerOpen(false);

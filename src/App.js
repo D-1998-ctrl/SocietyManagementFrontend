@@ -21,8 +21,8 @@ import Invoice from './Invoices/Invoice';
 import BillInvoice from './Invoices/BillInvoice';
 import BillFormat from './Invoices/BillFormat';
 import IncomeSheet from './Invoices/IncomeSheet';
-import Balancesheet from './Invoices/Balancesheet';
-import AuditReport from './Invoices/AuditReport';
+// import Balancesheet from './Invoices/Balancesheet';
+// import AuditReport from './Invoices/AuditReport';
 import Investmentsheet from './Invoices/Investmentsheet';
 import Accountdash from './Members/Accountdash'
 import Overview from './pages/Overview';
@@ -31,6 +31,11 @@ import Settings from './Settings/Settings';
 import CreateService from './Invoices/CreateServices';
 import InvoiceTemplate from './Invoices/Invoice_Template';
 import DemoInvoice from './Invoices/DemoInvoice';
+import TrialBalance from './Account/TrialBalance';
+import Profitloss from './Account/Profitloss';
+import BalanceSheet from './Account/BalanceSheet';
+import AuditReport from './Account/AuditReport';
+import Audittemp from './AuditTempate/Audittemp';
 // import LogIn from './pages/LogIn';
 
 function App() {
@@ -49,7 +54,13 @@ function App() {
           <Route path="/society/meeting" element={<Meeting />} />
           <Route path="/society/committee" element={<Managingcommittee />} />
           <Route path="/account/accountledger" element={<AccountLedger />} />
+          <Route path="/report/trialbalance/" element={<TrialBalance />} />
+          <Route path="/report/profitloss/" element={<Profitloss />} />
+          <Route path="/report/balancesheet/" element={<BalanceSheet />} />
+          <Route path='/report/auditreport/' element={<AuditReport />} />
+          {/* <Route path='/audittemp' element={<Audittemp />} /> */}
           {/* <Route path="/accountdash" element={<Accountdash />} /> */}
+
 
           <Route>
             <Route path="/accountdash" element={<Accountdash />}>
@@ -77,14 +88,14 @@ function App() {
               <Route path="InvoiceTemplate" element={<InvoiceTemplate />} />
               <Route path="billformat" element={<BillFormat />} />
               <Route path="incomeexpendituresheet" element={<IncomeSheet />} />
-              <Route path="auditreport" element={<AuditReport />} />
+              {/* <Route path="auditreport" element={<AuditReport />} /> */}
               <Route path="investmentsheet" element={<Investmentsheet />} />
-              <Route path="balancesheet" element={<Balancesheet />} />
+              {/* <Route path="balancesheet" element={<Balancesheet />} /> */}
             </Route>
           </Route>
 
           <Route path='settings' element={<Settings />} />
-
+          <Route path='audittemp' element={<Audittemp />} />
         </Route>
       </Routes>
     </Router>
