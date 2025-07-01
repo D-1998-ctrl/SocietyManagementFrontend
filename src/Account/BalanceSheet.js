@@ -16,6 +16,7 @@ import LocalPrintshopIcon from '@mui/icons-material/LocalPrintshop';
 import "jspdf-autotable";
 import jsPDF from "jspdf";
 function BalanceSheet() {
+  const REACT_APP_URL =process.env.REACT_APP_URL
   const [assets, setAssets] = useState([]);
   const [liabilities, setLiabilities] = useState([])
   const [vouchers, setVouchers] = useState({});
@@ -24,7 +25,7 @@ function BalanceSheet() {
   useEffect(() => {
     const fetchBalanceSheet = async () => {
       try {
-        const response = await fetch("http://localhost:8001/Account/api/accounts/balance-sheet", {
+        const response = await fetch(`${REACT_APP_URL}/Account/api/accounts/balance-sheet`, {
           method: "GET",
           redirect: "follow"
         });
@@ -34,69 +35,70 @@ function BalanceSheet() {
         }
 
         const result = await response.json();
+        console.log('result',result)
         setAssets(result.assets);
         setLiabilities(result.liabilities)
         setboardofMembers(result.boardofMembers)
 
-        fetchAllVouchers(result.assets);
-        fetchliablitiesVouchers(result.liabilities)
+        // fetchAllVouchers(result.assets);
+        // fetchliablitiesVouchers(result.liabilities)
       } catch (error) {
         console.error("Error fetching balance sheet:", error);
 
       }
     };
 
-    const fetchAllVouchers = async (assets) => {
-      try {
-        const vouchersMap = {};
+    // const fetchAllVouchers = async (assets) => {
+    //   try {
+    //     const vouchersMap = {};
 
-        await Promise.all(assets.map(async (asset) => {
-          const ledgerId = asset._id;
-          try {
-            const response = await fetch(`http://localhost:8001/Voucher/ledger/${ledgerId}`);
-            if (!response.ok) {
-              console.error(`Failed to fetch vouchers for ledger ${ledgerId}`);
-              return;
-            }
-            const voucherData = await response.json();
-            vouchersMap[ledgerId] = voucherData;
-          } catch (err) {
-            console.error(`Error fetching vouchers for ledger ${ledgerId}:`, err);
-          }
-        }));
-
-
-        setVouchers(prev => ({ ...prev, ...vouchersMap }));
-      } catch (error) {
-        console.error("Error fetching vouchers:", error);
-      }
-    };
-
-    const fetchliablitiesVouchers = async (liabilities) => {
-      try {
-        const vouchersMap = {};
-
-        await Promise.all(liabilities.map(async (liabilities) => {
-          const ledgerId = liabilities._id;
-          try {
-            const response = await fetch(`http://localhost:8001/Voucher/ledger/${ledgerId}`);
-            if (!response.ok) {
-              console.error(`Failed to fetch vouchers for ledger ${ledgerId}`);
-              return;
-            }
-            const voucherData = await response.json();
-            vouchersMap[ledgerId] = voucherData;
-          } catch (err) {
-            console.error(`Error fetching vouchers for ledger ${ledgerId}:`, err);
-          }
-        }));
+    //     await Promise.all(assets.map(async (asset) => {
+    //       const ledgerId = asset._id;
+    //       try {
+    //         const response = await fetch(`http://localhost:8001/Voucher/ledger/${ledgerId}`);
+    //         if (!response.ok) {
+    //           console.error(`Failed to fetch vouchers for ledger ${ledgerId}`);
+    //           return;
+    //         }
+    //         const voucherData = await response.json();
+    //         vouchersMap[ledgerId] = voucherData;
+    //       } catch (err) {
+    //         console.error(`Error fetching vouchers for ledger ${ledgerId}:`, err);
+    //       }
+    //     }));
 
 
-        setVouchers(prev => ({ ...prev, ...vouchersMap }));
-      } catch (error) {
-        console.error("Error fetching vouchers:", error);
-      }
-    };
+    //     setVouchers(prev => ({ ...prev, ...vouchersMap }));
+    //   } catch (error) {
+    //     console.error("Error fetching vouchers:", error);
+    //   }
+    // };
+
+    // const fetchliablitiesVouchers = async (liabilities) => {
+    //   try {
+    //     const vouchersMap = {};
+
+    //     await Promise.all(liabilities.map(async (liabilities) => {
+    //       const ledgerId = liabilities._id;
+    //       try {
+    //         const response = await fetch(`http://localhost:8001/Voucher/ledger/${ledgerId}`);
+    //         if (!response.ok) {
+    //           console.error(`Failed to fetch vouchers for ledger ${ledgerId}`);
+    //           return;
+    //         }
+    //         const voucherData = await response.json();
+    //         vouchersMap[ledgerId] = voucherData;
+    //       } catch (err) {
+    //         console.error(`Error fetching vouchers for ledger ${ledgerId}:`, err);
+    //       }
+    //     }));
+
+
+    //     setVouchers(prev => ({ ...prev, ...vouchersMap }));
+    //   } catch (error) {
+    //     console.error("Error fetching vouchers:", error);
+    //   }
+    // };
 
     fetchBalanceSheet();
   }, []);

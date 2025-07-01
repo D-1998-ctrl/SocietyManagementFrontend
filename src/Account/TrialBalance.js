@@ -15,6 +15,7 @@ import "jspdf-autotable";
 import jsPDF from "jspdf";
 
 const TrialBalance = () => {
+    const REACT_APP_URL =process.env.REACT_APP_URL
     const [vouchers, setVouchers] = useState([]);
     const [groupedVouchers, setGroupedVouchers] = useState({});
 
@@ -43,7 +44,7 @@ const TrialBalance = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get('http://localhost:8001/Voucher/');
+                const response = await axios.get(`${REACT_APP_URL}/Voucher/`);
                 const data = response.data;
                 setVouchers(data);
                 const grouped = groupByLedgerId(data);

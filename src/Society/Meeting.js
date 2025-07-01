@@ -12,6 +12,7 @@ import { useTheme } from "@mui/material/styles";
 import axios from 'axios'; // For API calls
 
 const Meeting = () => {
+    const REACT_APP_URL =process.env.REACT_APP_URL
     const theme = useTheme();
     const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -35,7 +36,7 @@ const Meeting = () => {
 
     const fetchMeetings = async () => {
         try {
-            const response = await axios.get('http://localhost:8001/Meeting');
+            const response = await axios.get(`${REACT_APP_URL}/Meeting`);
             setMeetings(response.data);
         } catch (error) {
             console.error('Error fetching meetings:', error);
@@ -73,10 +74,10 @@ const Meeting = () => {
         try {
             if (selectedMeeting) {
                 // Update existing meeting
-                await axios.patch(`http://localhost:8001/Meeting/${selectedMeeting._id}`, formData);
+                await axios.patch(`${REACT_APP_URL}/Meeting/${selectedMeeting._id}`, formData);
             } else {
                 // Create new meeting
-                await axios.post('http://localhost:8001/Meeting', formData);
+                await axios.post(`${REACT_APP_URL}/Meeting`, formData);
             }
             fetchMeetings(); // Refresh the meetings list
             setIsDrawerOpen(false); // Close the drawer
@@ -99,7 +100,7 @@ const Meeting = () => {
         const isConfirmed = window.confirm("Are you sure you want to delete this record?");
         if (!isConfirmed) return;
         try {
-            await axios.delete(`http://localhost:8001/Meeting/${id}`);
+            await axios.delete(`${REACT_APP_URL}/Meeting/${id}`);
             fetchMeetings(); // Refresh the meetings list
             setIsDrawerOpen(false); // Close the drawer
             setSelectedMeeting(null); // Reset selected meeting

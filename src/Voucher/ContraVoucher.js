@@ -19,6 +19,7 @@ import { format } from 'date-fns';
 import { debounce } from 'lodash';
 
 const ContraVoucher = () => {
+  const REACT_APP_URL =process.env.REACT_APP_URL
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const [data, setData] = useState([]);
@@ -69,16 +70,16 @@ const ContraVoucher = () => {
       size: 100,
       Cell: ({ cell }) => format(new Date(cell.getValue()), 'dd/MM/yyyy'),
     },
-    {
-      accessorKey: 'crNameOfCreditor',
-      header: 'Creditor',
-      size: 150,
-    },
-    {
-      accessorKey: 'nameOfLedger',
-      header: 'Ledger Account',
-      size: 150,
-    },
+    // {
+    //   accessorKey: 'crNameOfCreditor',
+    //   header: 'Creditor',
+    //   size: 150,
+    // },
+    // {
+    //   accessorKey: 'nameOfLedger',
+    //   header: 'Ledger Account',
+    //   size: 150,
+    // },
     {
       accessorKey: 'amountWithdrawn',
       header: 'Amount',
@@ -112,7 +113,7 @@ const ContraVoucher = () => {
   const fetchData = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get('http://localhost:8001/contraVoucher');
+      const response = await axios.get(`${REACT_APP_URL}/contraVoucher`);
       setData(response.data);
     } catch (error) {
       setIsError(true);
@@ -123,42 +124,90 @@ const ContraVoucher = () => {
   }, []);
 
   // Optimized account fetching with backend filtering
+  // const fetchAccounts = useCallback(async (searchQuery = '') => {
+  //   try {
+  //     setLoadingAccounts(true);
+  //     const response = await axios.get('http://localhost:8001/Account', {
+  //       params: {
+  //         groupId: "1",
+  //         search: searchQuery,
+  //         limit: 100
+  //       }
+  //     });
+  //     setAccounts(response.data);
+  //   } catch (error) {
+  //     console.error('Error fetching accounts:', error);
+  //   } finally {
+  //     setLoadingAccounts(false);
+  //   }
+  // }, []);
+
   const fetchAccounts = useCallback(async (searchQuery = '') => {
-    try {
-      setLoadingAccounts(true);
-      const response = await axios.get('http://localhost:8001/Account', {
-        params: {
-          groupId: "1",
-          search: searchQuery,
-          limit: 100
-        }
-      });
-      setAccounts(response.data);
-    } catch (error) {
-      console.error('Error fetching accounts:', error);
-    } finally {
-      setLoadingAccounts(false);
-    }
-  }, []);
+  try {
+    setLoadingAccounts(true);
+    const response = await axios.get(`${REACT_APP_URL}/Account`, {
+      params: {
+        search: searchQuery,
+        limit: 100
+      }
+    });
+
+    // Filter accounts where groupId.groupCode === 1
+    const filteredAccounts = (response.data || []).filter(
+      (account) => account.groupId?.groupCode === 1
+    );
+
+    setAccounts(filteredAccounts);
+  } catch (error) {
+    console.error('Error fetching accounts:', error);
+  } finally {
+    setLoadingAccounts(false);
+  }
+}, []);
+
 
   // Optimized ledger fetching with backend filtering
+  // const fetchLedgers = useCallback(async (searchQuery = '') => {
+  //   try {
+  //     setLoadingLedgers(true);
+  //     const response = await axios.get('http://localhost:8001/Account', {
+  //       params: {
+  //         groupId: "7",
+  //         search: searchQuery,
+  //         limit: 100
+  //       }
+  //     });
+  //     setLedgers(response.data);
+  //   } catch (error) {
+  //     console.error('Error fetching ledgers:', error);
+  //   } finally {
+  //     setLoadingLedgers(false);
+  //   }
+  // }, []);
+
   const fetchLedgers = useCallback(async (searchQuery = '') => {
-    try {
-      setLoadingLedgers(true);
-      const response = await axios.get('http://localhost:8001/Account', {
-        params: {
-          groupId: "7",
-          search: searchQuery,
-          limit: 100
-        }
-      });
-      setLedgers(response.data);
-    } catch (error) {
-      console.error('Error fetching ledgers:', error);
-    } finally {
-      setLoadingLedgers(false);
-    }
-  }, []);
+  try {
+    setLoadingLedgers(true);
+    const response = await axios.get(`${REACT_APP_URL}/Account`, {
+      params: {
+        search: searchQuery,
+        limit: 100
+      }
+    });
+
+    // Filter accounts where groupId.groupCode === 7
+    const filteredLedgers = (response.data || []).filter(
+      (account) => account.groupId?.groupCode === 7
+    );
+
+    setLedgers(filteredLedgers);
+  } catch (error) {
+    console.error('Error fetching accounts:', error);
+  } finally {
+    setLoadingLedgers(false);
+  }
+}, []);
+
 
   // Debounced search function
   const debouncedSearch = useMemo(() => debounce(async (query) => {
@@ -169,7 +218,7 @@ const ContraVoucher = () => {
 
     try {
       setIsSearching(true);
-      const response = await axios.get('http://localhost:8001/contraVoucher/search', {
+      const response = await axios.get(`${REACT_APP_URL}/contraVoucher/search`, {
         params: { query }
       });
       setSearchResults(response.data);
@@ -424,9 +473,9 @@ const ContraVoucher = () => {
   const handleSubmit = async () => {
     try {
       if (editingId) {
-        await axios.put(`http://localhost:8001/contraVoucher/${editingId}`, formData);
+        await axios.put(`${REACT_APP_URL}/contraVoucher/${editingId}`, formData);
       } else {
-        await axios.post('http://localhost:8001/contraVoucher', formData);
+        await axios.post(`${REACT_APP_URL}/contraVoucher`, formData);
         console.log("formdata",formData)
       }
       fetchData();
@@ -439,7 +488,7 @@ const ContraVoucher = () => {
   const handleDelete = async () => {
     try {
       if (editingId) {
-        await axios.delete(`http://localhost:8001/contraVoucher/${editingId}`);
+        await axios.delete(`${REACT_APP_URL}/contraVoucher/${editingId}`);
         fetchData();
         setIsDrawerOpen(false);
       }

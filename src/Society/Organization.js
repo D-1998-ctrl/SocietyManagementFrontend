@@ -22,6 +22,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import axios from "axios";
 
 const Organization = () => {
+  const REACT_APP_URL =process.env.REACT_APP_URL
   const [formValues, setFormValues] = useState({
     SocietyName: "",
     AddressLine1: "",
@@ -54,10 +55,10 @@ const Organization = () => {
   const fetchBoardMembers = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("http://localhost:8001/Organisation"); // Replace with your API endpoint
+      const response = await axios.get(`${REACT_APP_URL}/Organisation`); // Replace with your API endpoint
       setData(response.data);
       if (response.data.length > 0) {
-        setFormValues({
+        setFormValues({ 
           ...response.data[0],
           RegisteredDate: response.data[0].RegisteredDate
             ? new Date(response.data[0].RegisteredDate)
@@ -118,7 +119,7 @@ const Organization = () => {
       if (data.length > 0) {
         // Update existing record
         const updatedData = await axios.patch(
-          `http://localhost:8001/Organisation/${data[0]._id}`,
+          `${REACT_APP_URL}/Organisation/${data[0]._id}`,
           payload
         );
         setData([updatedData.data]);
@@ -126,7 +127,7 @@ const Organization = () => {
       } else {
         // Create new record
         const newData = await axios.post(
-          "http://localhost:8001/Organisation",
+          `${REACT_APP_URL}/Organisation`,
           payload
         );
         setData([newData.data]);
@@ -166,7 +167,7 @@ const Organization = () => {
 
     if (data.length > 0) {
       try {
-        await axios.delete(`http://localhost:8001/Organisation/${data[0]._id}`);
+        await axios.delete(`${REACT_APP_URL}/Organisation/${data[0]._id}`);
         setData([]); // Clear existing record
         alert("Society information deleted successfully!");
       } catch (err) {

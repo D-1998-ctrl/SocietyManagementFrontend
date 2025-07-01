@@ -21,8 +21,9 @@ import { format } from 'date-fns';
 const PurchaseVoucher = () => {
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
-  const API_URL = 'http://localhost:8001/purchaseVoucher';
-  const ACCOUNT_API_URL = 'http://localhost:8001/Account';
+  const REACT_APP_URL =process.env.REACT_APP_URL
+  const API_URL = `${REACT_APP_URL}/purchaseVoucher`;
+  const ACCOUNT_API_URL = `${REACT_APP_URL}/Account`;
 
   // State for form data
   const [formData, setFormData] = useState({
@@ -79,8 +80,8 @@ const PurchaseVoucher = () => {
       setAccounts(accountsData);
 
       // Filter accounts by groupId with null checks
-      const creditors = response.data.filter(account => account.groupId === "2");
-      const ledgers =response.data.filter(account => account.groupId === "25");
+      const creditors = response.data.filter(account => account.groupId.groupCode === 2);
+      const ledgers =response.data.filter(account => account.groupId.groupCode === 25);
 
       console.log(creditors, ledgers)
       setCreditorAccounts(creditors);
@@ -226,11 +227,11 @@ const PurchaseVoucher = () => {
         size: 150,
         Cell: ({ cell }) => cell.getValue() ? new Date(cell.getValue()).toLocaleDateString() : ''
       },
-      {
-        accessorKey: 'crNameOfCreditor',
-        header: 'Creditor Invoice Generator',
-        size: 150,
-      },
+      // {
+      //   accessorKey: 'crNameOfCreditor',
+      //   header: 'Creditor Invoice Generator',
+      //   size: 150,
+      // },
       {
         accessorKey: 'refBillNo',
         header: ' Ref.Bill No',
@@ -241,11 +242,11 @@ const PurchaseVoucher = () => {
         header: 'Amount of Bill',
         size: 150,
       },
-      {
-        accessorKey: 'drNameOfLedger',
-        header: 'Head Ledger',
-        size: 150,
-      },
+      // {
+      //   accessorKey: 'drNameOfLedger',
+      //   header: 'Head Ledger',
+      //   size: 150,
+      // },
       {
         accessorKey: 'amount',
         header: 'Amount',
@@ -266,11 +267,7 @@ const PurchaseVoucher = () => {
         header: 'CGST@9%',
         size: 150,
       },
-      {
-        accessorKey: 'customerNo',
-        header: 'Customer No',
-        size: 150,
-      },
+     
       {
         accessorKey: 'billPeriod',
         header: 'Bill Period',

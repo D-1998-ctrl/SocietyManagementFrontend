@@ -3,6 +3,7 @@ import { TextField, Button, Box, Typography } from '@mui/material';
 
 
 const SimpleForm = () => {
+    const REACT_APP_URL =process.env.REACT_APP_URL
 
     const [tempname, SetTempName] = useState("")
     const [subject, SetSubject] = useState("")
@@ -41,7 +42,7 @@ const SimpleForm = () => {
             redirect: "follow"
         };
         console.log(raw)
-        fetch("http://localhost:8001/Auditemp/", requestOptions)
+        fetch(`${REACT_APP_URL}/Auditemp/`, requestOptions)
             .then((response) => response.json())
             .then((result) => console.log(result))
             .catch((error) => console.error(error));

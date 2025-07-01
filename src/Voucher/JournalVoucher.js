@@ -41,6 +41,7 @@ import axios from 'axios';
 import { format } from 'date-fns';
 
 const JournalVoucher = () => {
+  const REACT_APP_URL =process.env.REACT_APP_URL
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -86,7 +87,7 @@ const JournalVoucher = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get('http://localhost:8001/JournalVoucher');
+        const response = await axios.get(`${REACT_APP_URL}/JournalVoucher`);
         setData(response.data);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -164,14 +165,14 @@ const JournalVoucher = () => {
 
       try {
         if (isEditMode) {
-          await axios.put(`http://localhost:8001/JournalVoucher/${selectedRow._id}`, payload);
+          await axios.put(`${REACT_APP_URL}/JournalVoucher/${selectedRow._id}`, payload);
           setSuccessMessage('Journal voucher updated successfully');
         } else {
-          await axios.post('http://localhost:8001/JournalVoucher', payload);
+          await axios.post(`${REACT_APP_URL}/JournalVoucher`, payload);
           setSuccessMessage('Journal voucher created successfully');
         }
 
-        const response = await axios.get('http://localhost:8001/JournalVoucher');
+        const response = await axios.get(`${REACT_APP_URL}/JournalVoucher`);
         setData(response.data);
 
         setTimeout(() => {
@@ -188,10 +189,10 @@ const JournalVoucher = () => {
 
   const handleDelete = async () => {
     try {
-      await axios.delete(`http://localhost:8001/JournalVoucher/${selectedRow._id}`);
+      await axios.delete(`${REACT_APP_URL}/JournalVoucher/${selectedRow._id}`);
       setSuccessMessage('Journal voucher deleted successfully');
 
-      const response = await axios.get('http://localhost:8001/JournalVoucher');
+      const response = await axios.get(`${REACT_APP_URL}/JournalVoucher`);
       setData(response.data);
 
       setTimeout(() => {

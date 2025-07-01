@@ -19,10 +19,11 @@ import jsPDF from "jspdf";
 
 
 const ProfitAndLossReport = () => {
+  const REACT_APP_URL =process.env.REACT_APP_URL
   const [reportData, setReportData] = useState({
     incomeLedgers: [],
     expenseLedgers: [],
-    allRelevantLedgers: [],
+    // allRelevantLedgers: [],
     boardMembers: []
   });
   const [loading, setLoading] = useState(true);
@@ -31,7 +32,7 @@ const ProfitAndLossReport = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("http://localhost:8001/Account/profit-loss/report", {
+        const response = await fetch(`${REACT_APP_URL}/Account/profit-loss/report`, {
           method: "GET",
           redirect: "follow"
         });
@@ -42,6 +43,7 @@ const ProfitAndLossReport = () => {
 
         const result = await response.json();
         setReportData(result);
+        console.log('reportData',result)
         setLoading(false);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -145,9 +147,12 @@ const ProfitAndLossReport = () => {
     doc.setFontSize(14);
     doc.text('Summary', 14, nextY);
 
+const adjustedTotalExpenses =
+  netProfitLoss > 0 ? (totalExpenses + netProfitLoss).toFixed(2) : totalExpenses.toFixed(2);
+
     const summaryData = [
       ['Total Income', totalIncome.toFixed(2)],
-      ['Total Expenses', totalExpenses.toFixed(2)],
+      ['Total Expenses', adjustedTotalExpenses],
       ['Net ' + (netProfitLoss >= 0 ? 'Profit' : 'Loss'), Math.abs(netProfitLoss).toFixed(2)]
     ];
 

@@ -27,6 +27,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import { MaterialReactTable } from 'material-react-table';
 
 const Managingcommittee = () => {
+  const REACT_APP_URL =process.env.REACT_APP_URL
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -70,7 +71,7 @@ const Managingcommittee = () => {
   // Fetch wings from the API
   const fetchWings = async () => {
     try {
-      const response = await axios.get('http://localhost:8001/wings'); // Adjust API endpoint
+      const response = await axios.get(`${REACT_APP_URL}/wings`); // Adjust API endpoint
       setWings(response.data);
     } catch (error) {
       console.error('Error fetching wings:', error);
@@ -80,7 +81,7 @@ const Managingcommittee = () => {
   // Fetch flats from the API
   const fetchFlats = async () => {
     try {
-      const response = await axios.get('http://localhost:8001/UnitType'); // Adjust API endpoint
+      const response = await axios.get(`${REACT_APP_URL}/UnitType`); // Adjust API endpoint
       setFlats(response.data);
     } catch (error) {
       console.error('Error fetching flats:', error);
@@ -91,7 +92,7 @@ const Managingcommittee = () => {
   const fetchBoardMembers = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://localhost:8001/BoardMembers'); // Replace with your API endpoint
+      const response = await axios.get(`${REACT_APP_URL}/BoardMembers`); // Replace with your API endpoint
       setTableData(response.data);
     } catch (err) {
       setError(err.message || 'Failed to fetch board members');
@@ -115,10 +116,10 @@ const Managingcommittee = () => {
       let response;
       if (isEditMode) {
         // Update existing record
-        response = await axios.patch(`http://localhost:8001/BoardMembers/${formData._id}`, payload);
+        response = await axios.patch(`${REACT_APP_URL}/BoardMembers/${formData._id}`, payload);
       } else {
         // Add new record
-        response = await axios.post('http://localhost:8001/BoardMembers', payload);
+        response = await axios.post(`${REACT_APP_URL}/BoardMembers`, payload);
       }
 
       if (response.status === 200 || response.status === 201) {
@@ -178,7 +179,7 @@ const Managingcommittee = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.delete(`http://localhost:8001/BoardMembers/${formData._id}`);
+      const response = await axios.delete(`${REACT_APP_URL}/BoardMembers/${formData._id}`);
       if (response.status === 200) {
         fetchBoardMembers(); // Refresh the table data
         handleDrawerClose(); // Close the drawer

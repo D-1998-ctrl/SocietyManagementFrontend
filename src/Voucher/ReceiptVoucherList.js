@@ -76,6 +76,7 @@ const NewReceiptVoucher = ({ isDrawerOpen, handleDrawerClose }) => {
       console.error("Error fetching members:", error);
     }
   };
+  
   const fetchDrAccountOptions = async (query) => {
     if (!query) return;
     try {

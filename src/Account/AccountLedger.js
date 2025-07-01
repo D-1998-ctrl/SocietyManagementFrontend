@@ -87,6 +87,7 @@ import jsPDF from "jspdf";
 // ];
 
 const AccountLedger = () => {
+    const REACT_APP_URL =process.env.REACT_APP_URL
     const theme = useTheme();
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -105,7 +106,7 @@ const AccountLedger = () => {
 
     const fetchAccounts = async () => {
         try {
-            const response = await axios.get('http://localhost:8001/Account');
+            const response = await axios.get(`${REACT_APP_URL}/Account`);
             setAccounts(response.data);
         } catch (error) {
             console.error('Error fetching accounts:', error);
@@ -120,7 +121,7 @@ const AccountLedger = () => {
 
     const handleRowClick = async (row) => {
         try {
-            const response = await axios.get(`http://localhost:8001/Account/${row._id}`);
+            const response = await axios.get(`${REACT_APP_URL}/Account/${row._id}`);
            
             setSelectedRow(response.data);
             setLedgerId(response.data._id)
@@ -137,13 +138,14 @@ const AccountLedger = () => {
         setFormData({ ...formData, [name]: value });
     };
 console.log(formData)
+
     const handleSave = async () => {
         setIsSubmitting(true);
         try {
             if (selectedRow) {
-                await axios.patch(`http://localhost:8001/Account/${selectedRow._id}`, formData);
+                await axios.patch(`${REACT_APP_URL}/Account/${selectedRow._id}`, formData);
             } else {
-                await axios.post('http://localhost:8001/Account', formData);
+                await axios.post(`${REACT_APP_URL}/Account`, formData);
             }
             fetchAccounts();
             setFormData({
@@ -166,7 +168,7 @@ console.log(formData)
     const handleDelete = async () => {
         setIsSubmitting(true);
         try {
-            await axios.delete(`http://localhost:8001/Account/${selectedRow._id}`);
+            await axios.delete(`${REACT_APP_URL}/Account/${selectedRow._id}`);
             fetchAccounts();
             setIsDrawerOpen(false);
         } catch (error) {
@@ -179,22 +181,22 @@ console.log(formData)
     const columns = [
         { accessorKey: 'accountId', header: 'Account ID' },
         { accessorKey: 'accountName', header: 'Account Name' },
-        {
-            accessorKey: 'groupId',
-            header: 'Group',
-            Cell: ({ cell }) => {
-                const group = groups.find(g => g.groupCode === cell.getValue());
-                return group ? group.groupName : cell.getValue();
-            }
-        },
-        {
-            accessorKey: 'subGroupId',
-            header: 'Sub Group',
-            Cell: ({ cell }) => {
-                const subgroup = subgroups.find(sg => sg.subGroupCode === cell.getValue());
-                return subgroup ? subgroup.subGroupName : cell.getValue();
-            }
-        },
+        // {
+        //     accessorKey: 'groupId',
+        //     header: 'Group',
+        //     Cell: ({ cell }) => {
+        //         const group = groups.find(g => g.groupCode === cell.getValue());
+        //         return group ? group.groupName : cell.getValue();
+        //     }
+        // },
+        // {
+        //     accessorKey: 'subGroupId',
+        //     header: 'Sub Group',
+        //     Cell: ({ cell }) => {
+        //         const subgroup = subgroups.find(sg => sg.subGroupCode === cell.getValue());
+        //         return subgroup ? subgroup.subGroupName : cell.getValue();
+        //     }
+        // },
         { accessorKey: 'opening', header: 'Opening Balance' },
         { accessorKey: 'drOrCr', header: 'Debit/Credit' },
         { accessorKey: 'typeCode', header: 'Type Code' },
@@ -211,7 +213,7 @@ console.log(formData)
             redirect: "follow"
         };
 
-        fetch(`http://localhost:8001/Voucher/ledger/${ledgerId}`, requestOptions)
+        fetch(`${REACT_APP_URL}/Voucher/ledger/${ledgerId}`, requestOptions)
             .then((response) => response.json())
             .then((result) => {
                 console.log(result);
@@ -233,7 +235,7 @@ console.log(formData)
             redirect: "follow"
         };
 
-        fetch("http://localhost:8001/AccountGroup/", requestOptions)
+        fetch(`${REACT_APP_URL}/AccountGroup/`, requestOptions)
             .then((response) => response.json())
             .then(data => {
                 console.log("accountGroup", data)
@@ -255,7 +257,7 @@ console.log(formData)
             redirect: "follow"
         };
 
-        fetch("http://localhost:8001/AccountSubGroup/subgroups/", requestOptions)
+        fetch(`${REACT_APP_URL}/AccountSubGroup/subgroups/`, requestOptions)
             .then((response) => response.json())
             .then(data => {
                 console.log("accountsubGroup", data)
@@ -387,7 +389,7 @@ console.log(formData)
                             margin="normal"
                         />
 
-                        <FormControl fullWidth margin="normal">
+                        {/* <FormControl fullWidth margin="normal">
                             <Select
                                 name="groupId"
                                 value={formData.groupId}
@@ -406,9 +408,28 @@ console.log(formData)
                                     </MenuItem>
                                 ))}
                             </Select>
-                        </FormControl>
-
-                        <FormControl fullWidth margin="normal">
+                        </FormControl> */}
+<FormControl fullWidth margin="normal">
+    <Select
+        name="groupId"
+        value={formData.groupId}
+        onChange={handleInputChange}
+        displayEmpty
+        MenuProps={{
+            PaperProps: {
+                sx: { maxHeight: 200, maxWidth: 250 }
+            }
+        }}
+    >
+        <MenuItem sx={{ height: 40 }} value="" disabled>Select Group</MenuItem>
+        {groups.map(group => (
+            <MenuItem key={group._id} value={group._id} sx={{ height: 40 }}>
+                {group.groupName} ({group.groupCode})
+            </MenuItem>
+        ))}
+    </Select>
+</FormControl>
+                        {/* <FormControl fullWidth margin="normal">
                             <Select
                                 name="subGroupId"
                                 value={formData.subGroupId}
@@ -435,8 +456,32 @@ console.log(formData)
                                     </MenuItem>
                                 ))}
                             </Select>
-                        </FormControl>
-
+                        </FormControl> */}
+<FormControl fullWidth margin="normal">
+    <Select
+        name="subGroupId"
+        value={formData.subGroupId}
+        onChange={handleInputChange}
+        displayEmpty
+        MenuProps={{
+            PaperProps: {
+                sx: { maxHeight: 200, maxWidth: 250 }
+            }
+        }}
+    >
+        <MenuItem sx={{ height: 40 }} value="" disabled>Select Sub Group</MenuItem>
+        {subgroups.map(subgroup => (
+            <MenuItem
+                key={subgroup._id}  // Using _id for the key
+                value={subgroup._id} // Using _id as the value
+                sx={{ height: 40 }}
+            >
+                {subgroup.subgroupName}
+                {subgroup.subgroupCode ? ` (${subgroup.subgroupCode})` : ""}
+            </MenuItem>
+        ))}
+    </Select>
+</FormControl>
 
                         <TextField
                             name="opening"

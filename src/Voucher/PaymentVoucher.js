@@ -20,6 +20,7 @@ import axios from 'axios';
 import { format } from 'date-fns';
 
 const PaymentVoucher = () => {
+  const REACT_APP_URL =process.env.REACT_APP_URL
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const [data, setData] = useState([]);
@@ -53,9 +54,9 @@ const PaymentVoucher = () => {
   const fetchAccounts = async () => {
     try {
       setLoadingAccounts(true);
-      const response = await axios.get('http://localhost:8001/Account');
+      const response = await axios.get(`${REACT_APP_URL}/Account`);
       // Filter accounts where groupId is not 7
-      const filteredAccounts = response.data.filter(account => account.groupId !== "7");
+      const filteredAccounts = response.data.filter(account => account.groupId.groupCode !== 7);
       console.log('accntg',response.data)
       setAccounts(filteredAccounts);
       setLoadingAccounts(false);
@@ -69,9 +70,9 @@ const PaymentVoucher = () => {
   const fetchBanks = async () => {
     try {
       setLoadingBanks(true);
-      const response = await axios.get('http://localhost:8001/Account');
+      const response = await axios.get(`${REACT_APP_URL}/Account`);
       // Filter accounts with groupId = 7
-      const filteredBanks = response.data.filter(account => account.groupId === "7");
+      const filteredBanks = response.data.filter(account => account.groupId.groupCode === 7);
       setBanks(filteredBanks);
       setLoadingBanks(false);
     } catch (error) {
@@ -84,7 +85,7 @@ const PaymentVoucher = () => {
   const fetchData = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get('http://localhost:8001/paymentVoucher');
+      const response = await axios.get(`${REACT_APP_URL}/paymentVoucher`);
       setData(response.data);
       setIsLoading(false);
     } catch (error) {
@@ -233,10 +234,10 @@ const PaymentVoucher = () => {
     try {
       if (editingId) {
         // Update existing record
-        await axios.put(`http://localhost:8001/paymentVoucher/${editingId}`, formData);
+        await axios.put(`${REACT_APP_URL}/paymentVoucher/${editingId}`, formData);
       } else {
         // Create new record
-        await axios.post('http://localhost:8001/paymentVoucher', formData);
+        await axios.post(`${REACT_APP_URL}/paymentVoucher`, formData);
       }
       fetchData(); // Refresh data
       setIsDrawerOpen(false);
@@ -247,7 +248,7 @@ const PaymentVoucher = () => {
 
   const handleDelete = async () => {
     try {
-      await axios.delete(`http://localhost:8001/paymentVoucher/${editingId}`);
+      await axios.delete(`${REACT_APP_URL}/paymentVoucher/${editingId}`);
       fetchData(); // Refresh data
       setIsDrawerOpen(false);
       setConfirmDelete(false);
